@@ -20,15 +20,18 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final CartService cartService;
     private final MedicineService medicineService;
+    private final InvoiceService invoiceService;
     
-    public OrderService(OrderRepository orderRepository, CartService cartService, MedicineService medicineService) {
+    public OrderService(OrderRepository orderRepository, CartService cartService, 
+                        MedicineService medicineService, InvoiceService invoiceService) {
         this.orderRepository = orderRepository;
         this.cartService = cartService;
         this.medicineService = medicineService;
+        this.invoiceService = invoiceService;
     }
     
     @Transactional
-    public Order createOrder(User user) {
+    public Order createOrderWithPayment(User user, String paymentMethod) {
         List<Cart> cartItems = cartService.getCartItems(user);
         
         if (cartItems.isEmpty()) {
@@ -51,6 +54,8 @@ public class OrderService {
                 .shippingState(user.getState())
                 .shippingPincode(user.getPincode())
                 .contactPhone(user.getPhone())
+                .paymentMethod(paymentMethod)
+                .paymentStatus("PAID")
                 .build();
         
         for (Cart cartItem : cartItems) {
@@ -66,9 +71,15 @@ public class OrderService {
         }
         
         Order savedOrder = orderRepository.save(order);
+        invoiceService.generateInvoice(savedOrder, paymentMethod);
         cartService.clearCart(user);
         
         return savedOrder;
+    }
+    
+    @Transactional
+    public Order createOrder(User user) {
+        return createOrderWithPayment(user, "Cash on Delivery");
     }
     
     public Order findById(Long id) {

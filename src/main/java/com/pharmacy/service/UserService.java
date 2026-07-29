@@ -34,11 +34,14 @@ public class UserService {
             throw new DuplicateResourceException("Email already registered");
         }
         
-        Role customerRole = roleRepository.findByName("ROLE_CUSTOMER")
-                .orElseThrow(() -> new ResourceNotFoundException("Customer role not found"));
+        String roleName = "CUSTOMER".equals(registrationDto.getAccountType()) 
+                ? "ROLE_CUSTOMER" : "ROLE_PHARMACIST";
+        
+        Role role = roleRepository.findByName(roleName)
+                .orElseThrow(() -> new ResourceNotFoundException(roleName + " role not found"));
         
         Set<Role> roles = new HashSet<>();
-        roles.add(customerRole);
+        roles.add(role);
         
         User user = User.builder()
                 .fullName(registrationDto.getFullName())

@@ -56,6 +56,50 @@
                         </table>
                     </div>
                 </div>
+                
+                <!-- My Invoices Section -->
+                <div class="card mt-4">
+                    <div class="card-body">
+                        <h4 class="card-title mb-4"><i class="bi bi-receipt"></i> My Invoices</h4>
+                        
+                        <div th:if="${invoices.isEmpty()}" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox fs-1"></i>
+                            <p class="mt-2">No invoices yet</p>
+                        </div>
+                        
+                        <div th:if="${!invoices.isEmpty()}" class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Invoice #</th>
+                                        <th>Order #</th>
+                                        <th>Date</th>
+                                        <th>Amount</th>
+                                        <th>Payment Method</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="invoice : ${invoices}">
+                                        <td th:text="${invoice.invoiceNumber}">INV001</td>
+                                        <td th:text="${invoice.order.orderNumber}">ORD001</td>
+                                        <td th:text="${#temporals.format(invoice.createdAt, 'dd MMM yyyy')}">Date</td>
+                                        <td>₹<span th:text="${#numbers.formatDecimal(invoice.totalAmount, 1, 2)}">0.00</span></td>
+                                        <td>
+                                            <span class="badge bg-info" th:text="${invoice.paymentMethod}">Payment</span>
+                                        </td>
+                                        <td>
+                                            <a th:href="@{/invoice/download/{orderId}(orderId=${invoice.order.id})}" 
+                                               class="btn btn-sm btn-primary">
+                                                <i class="bi bi-download"></i> Download
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

@@ -2,6 +2,7 @@ package com.pharmacy.controller;
 
 import com.pharmacy.dto.UserRegistrationDto;
 import com.pharmacy.entity.User;
+import com.pharmacy.service.InvoiceService;
 import com.pharmacy.service.UserService;
 import com.pharmacy.util.SecurityUtil;
 import jakarta.validation.Valid;
@@ -20,16 +21,19 @@ public class ProfileController {
     
     private final UserService userService;
     private final SecurityUtil securityUtil;
+    private final InvoiceService invoiceService;
     
-    public ProfileController(UserService userService, SecurityUtil securityUtil) {
+    public ProfileController(UserService userService, SecurityUtil securityUtil, InvoiceService invoiceService) {
         this.userService = userService;
         this.securityUtil = securityUtil;
+        this.invoiceService = invoiceService;
     }
     
     @GetMapping
     public String viewProfile(Model model) {
         User currentUser = securityUtil.getCurrentUser();
         model.addAttribute("user", currentUser);
+        model.addAttribute("invoices", invoiceService.getUserInvoices(currentUser));
         return "profile/view";
     }
     

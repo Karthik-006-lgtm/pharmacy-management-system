@@ -53,6 +53,12 @@ public class Order {
     @Column(nullable = false, length = 15)
     private String contactPhone;
     
+    @Column(length = 50)
+    private String paymentMethod;
+    
+    @Column(length = 20)
+    private String paymentStatus;
+    
     @Column(nullable = false, updatable = false)
     private LocalDateTime orderDate;
     

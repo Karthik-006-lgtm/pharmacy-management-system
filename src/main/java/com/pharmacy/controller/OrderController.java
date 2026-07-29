@@ -36,10 +36,11 @@ public class OrderController {
     }
     
     @PostMapping("/place")
-    public String placeOrder(RedirectAttributes redirectAttributes) {
+    public String placeOrder(@RequestParam String paymentMethod,
+                             RedirectAttributes redirectAttributes) {
         try {
             User currentUser = securityUtil.getCurrentUser();
-            Order order = orderService.createOrder(currentUser);
+            Order order = orderService.createOrderWithPayment(currentUser, paymentMethod);
             redirectAttributes.addFlashAttribute("success", "Order placed successfully! Order Number: " + order.getOrderNumber());
             return "redirect:/orders/track?orderNumber=" + order.getOrderNumber();
         } catch (Exception e) {

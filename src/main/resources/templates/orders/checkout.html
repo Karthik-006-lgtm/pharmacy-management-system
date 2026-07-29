@@ -22,12 +22,75 @@
                     </div>
                 </div>
                 
-                <div class="card">
+                <div class="card mb-4">
                     <div class="card-body">
-                        <h4 class="card-title mb-4">Payment Method</h4>
-                        <div class="alert alert-info">
-                            <i class="bi bi-info-circle"></i> Cash on Delivery (COD) only
-                        </div>
+                        <h4 class="card-title mb-4"><i class="bi bi-credit-card"></i> Payment Method</h4>
+                        <form th:action="@{/orders/place}" method="post" id="checkoutForm">
+                            <div class="row g-3">
+                                <!-- GPay -->
+                                <div class="col-md-6">
+                                    <input type="radio" class="btn-check" name="paymentMethod" id="gpay" value="Google Pay" required>
+                                    <label class="btn btn-outline-primary w-100 p-3" for="gpay">
+                                        <i class="bi bi-google fs-3 d-block mb-2"></i>
+                                        <span class="fw-bold">Google Pay</span>
+                                    </label>
+                                </div>
+                                
+                                <!-- PhonePe -->
+                                <div class="col-md-6">
+                                    <input type="radio" class="btn-check" name="paymentMethod" id="phonepe" value="PhonePe">
+                                    <label class="btn btn-outline-primary w-100 p-3" for="phonepe">
+                                        <i class="bi bi-phone fs-3 d-block mb-2"></i>
+                                        <span class="fw-bold">PhonePe</span>
+                                    </label>
+                                </div>
+                                
+                                <!-- Paytm -->
+                                <div class="col-md-6">
+                                    <input type="radio" class="btn-check" name="paymentMethod" id="paytm" value="Paytm">
+                                    <label class="btn btn-outline-primary w-100 p-3" for="paytm">
+                                        <i class="bi bi-wallet2 fs-3 d-block mb-2"></i>
+                                        <span class="fw-bold">Paytm</span>
+                                    </label>
+                                </div>
+                                
+                                <!-- Credit Card -->
+                                <div class="col-md-6">
+                                    <input type="radio" class="btn-check" name="paymentMethod" id="credit" value="Credit Card">
+                                    <label class="btn btn-outline-primary w-100 p-3" for="credit">
+                                        <i class="bi bi-credit-card fs-3 d-block mb-2"></i>
+                                        <span class="fw-bold">Credit Card</span>
+                                    </label>
+                                </div>
+                                
+                                <!-- Debit Card -->
+                                <div class="col-md-6">
+                                    <input type="radio" class="btn-check" name="paymentMethod" id="debit" value="Debit Card">
+                                    <label class="btn btn-outline-primary w-100 p-3" for="debit">
+                                        <i class="bi bi-credit-card-2-front fs-3 d-block mb-2"></i>
+                                        <span class="fw-bold">Debit Card</span>
+                                    </label>
+                                </div>
+                                
+                                <!-- Net Banking -->
+                                <div class="col-md-6">
+                                    <input type="radio" class="btn-check" name="paymentMethod" id="netbanking" value="Net Banking">
+                                    <label class="btn btn-outline-primary w-100 p-3" for="netbanking">
+                                        <i class="bi bi-bank fs-3 d-block mb-2"></i>
+                                        <span class="fw-bold">Net Banking</span>
+                                    </label>
+                                </div>
+                                
+                                <!-- Cash on Delivery -->
+                                <div class="col-md-12">
+                                    <input type="radio" class="btn-check" name="paymentMethod" id="cod" value="Cash on Delivery">
+                                    <label class="btn btn-outline-success w-100 p-3" for="cod">
+                                        <i class="bi bi-cash-coin fs-3 d-block mb-2"></i>
+                                        <span class="fw-bold">Cash on Delivery</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -41,11 +104,9 @@
                             Please ensure all information is correct before placing your order.
                         </div>
                         
-                        <form th:action="@{/orders/place}" method="post">
-                            <button type="submit" class="btn btn-primary w-100 btn-lg">
-                                <i class="bi bi-check-circle"></i> Place Order
-                            </button>
-                        </form>
+                        <button type="submit" form="checkoutForm" class="btn btn-primary w-100 btn-lg">
+                            <i class="bi bi-check-circle"></i> Confirm Payment & Place Order
+                        </button>
                         
                         <a th:href="@{/cart}" class="btn btn-outline-secondary w-100 mt-2">
                             <i class="bi bi-arrow-left"></i> Back to Cart

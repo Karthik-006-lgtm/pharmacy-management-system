@@ -6,12 +6,39 @@
     
     <div class="container my-5">
         <div class="row justify-content-center">
-            <div class="col-md-6">
+            <div class="col-md-7">
                 <div class="card">
                     <div class="card-body p-5">
-                        <h2 class="text-center mb-4">Register</h2>
+                        <h2 class="text-center mb-4">Create Account</h2>
                         
                         <form th:action="@{/register}" th:object="${user}" method="post">
+                            <!-- Account Type Selection -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">Select Account Type</label>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <input type="radio" class="btn-check" name="accountType" id="customer" 
+                                               th:field="*{accountType}" value="CUSTOMER" checked>
+                                        <label class="btn btn-outline-primary w-100 py-3 d-flex flex-column align-items-center" for="customer">
+                                            <i class="bi bi-person-circle fs-1 mb-2"></i>
+                                            <span class="fw-bold">Customer</span>
+                                            <small class="text-muted">Shop for medicines</small>
+                                        </label>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <input type="radio" class="btn-check" name="accountType" id="pharmacist" 
+                                               th:field="*{accountType}" value="PHARMACIST">
+                                        <label class="btn btn-outline-primary w-100 py-3 d-flex flex-column align-items-center" for="pharmacist">
+                                            <i class="bi bi-clipboard2-pulse fs-1 mb-2"></i>
+                                            <span class="fw-bold">Pharmacist</span>
+                                            <small class="text-muted">Professional account</small>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <hr class="my-4">
+                            
                             <div class="mb-3">
                                 <label class="form-label">Full Name</label>
                                 <input type="text" th:field="*{fullName}" class="form-control" 

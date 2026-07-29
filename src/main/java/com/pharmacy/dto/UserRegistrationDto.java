@@ -37,4 +37,7 @@ public class UserRegistrationDto {
     @NotBlank(message = "Pincode is required")
     @Pattern(regexp = "^[0-9]{6}$", message = "Pincode must be 6 digits")
     private String pincode;
+    
+    @NotBlank(message = "Account type is required")
+    private String accountType = "CUSTOMER";
 }
