@@ -53,6 +53,17 @@ public class Medicine {
     @Column(length = 255)
     private String imageUrl;
     
+    @Column(length = 50)
+    private String batchNumber;
+    
+    @Column(precision = 5, scale = 2)
+    @Builder.Default
+    private BigDecimal taxPercentage = BigDecimal.ZERO;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "uploaded_by")
+    private User uploadedBy;
+    
     @Column(nullable = false)
     @Builder.Default
     private Boolean active = true;

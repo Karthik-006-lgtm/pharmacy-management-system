@@ -32,5 +32,9 @@ public interface MedicineRepository extends JpaRepository<Medicine, Long> {
     @Query("SELECT m FROM Medicine m WHERE m.expiryDate <= :date")
     List<Medicine> findExpiringMedicines(@Param("date") LocalDate date);
     
+    List<Medicine> findByUploadedById(Long pharmacistId);
+    
+    long countByUploadedById(Long pharmacistId);
+    
     long countByActiveTrue();
 }

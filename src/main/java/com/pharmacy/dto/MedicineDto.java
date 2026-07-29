@@ -39,6 +39,14 @@ public class MedicineDto {
     @Digits(integer = 8, fraction = 2, message = "Invalid price format")
     private BigDecimal price;
     
+    @DecimalMin(value = "0.00", message = "Tax percentage cannot be negative")
+    @DecimalMax(value = "100.00", message = "Tax percentage cannot exceed 100")
+    @Digits(integer = 3, fraction = 2, message = "Invalid tax format")
+    private BigDecimal taxPercentage;
+    
+    @Size(max = 50, message = "Batch number must not exceed 50 characters")
+    private String batchNumber;
+    
     @NotNull(message = "Stock is required")
     @Min(value = 0, message = "Stock cannot be negative")
     private Integer stock;

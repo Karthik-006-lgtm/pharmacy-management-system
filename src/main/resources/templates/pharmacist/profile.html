@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pharmacist Profile</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/pharmacist/dashboard">
+                <i class="bi bi-hospital"></i> Pharmacist Portal
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/pharmacist/dashboard">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/pharmacist/medicines">Medicines</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/pharmacist/orders/pending">Orders</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/pharmacist/profile">Profile</a>
+                    </li>
+                    <li class="nav-item">
+                        <form th:action="@{/logout}" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-link nav-link">Logout</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h2 class="mb-4">
+            <i class="bi bi-person-circle"></i> Pharmacist Profile
+        </h2>
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body text-center">
+                        <i class="bi bi-person-circle text-primary" style="font-size: 5rem;"></i>
+                        <h4 class="mt-3" th:text="${pharmacist.fullName}">Pharmacist Name</h4>
+                        <p class="text-muted" th:text="${pharmacist.email}">email@example.com</p>
+                        <hr>
+                        <div class="text-start">
+                            <p><i class="bi bi-telephone"></i> <span th:text="${pharmacist.phone}">Phone</span></p>
+                            <p><i class="bi bi-geo-alt"></i> <span th:text="${pharmacist.address}">Address</span></p>
+                            <p><i class="bi bi-building"></i> <span th:text="${pharmacist.city} + ', ' + ${pharmacist.state}">City, State</span></p>
+                            <p><i class="bi bi-mailbox"></i> <span th:text="${pharmacist.pincode}">Pincode</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-8">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="bi bi-check-circle"></i> Accepted Orders</h5>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${#lists.isEmpty(acceptedOrders)}" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                            <p class="mt-2">No accepted orders yet</p>
+                        </div>
+                        <div th:if="${!#lists.isEmpty(acceptedOrders)}" class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Order #</th>
+                                        <th>Customer</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="order : ${acceptedOrders}">
+                                        <td th:text="${order.orderNumber}">ORD-123</td>
+                                        <td th:text="${order.user.fullName}">Customer</td>
+                                        <td>₹<span th:text="${#numbers.formatDecimal(order.totalAmount, 0, 2)}">0.00</span></td>
+                                        <td>
+                                            <span class="badge" 
+                                                  th:classappend="${order.status.name() == 'APPROVED'} ? 'bg-success' : 
+                                                                  (${order.status.name() == 'DELIVERED'} ? 'bg-primary' : 'bg-warning')"
+                                                  th:text="${order.status}">Status</span>
+                                        </td>
+                                        <td th:text="${#temporals.format(order.orderDate, 'dd-MM-yyyy')}">Date</td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a th:href="@{/pharmacist/orders/view/{id}(id=${order.id})}" 
+                                                   class="btn btn-outline-primary">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                <form th:if="${order.status.name() != 'DELIVERED'}" 
+                                                      th:action="@{/pharmacist/orders/update-status/{id}(id=${order.id})}" 
+                                                      method="post" class="d-inline">
+                                                    <select name="status" class="form-select form-select-sm d-inline" style="width: auto;" 
+                                                            onchange="this.form.submit()">
+                                                        <option value="">Update Status</option>
+                                                        <option value="PACKED">Packed</option>
+                                                        <option value="SHIPPED">Shipped</option>
+                                                        <option value="DELIVERED">Delivered</option>
+                                                    </select>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="bi bi-clock-history"></i> All Orders</h5>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${#lists.isEmpty(allOrders)}" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                            <p class="mt-2">No orders yet</p>
+                        </div>
+                        <div th:if="${!#lists.isEmpty(allOrders)}" class="table-responsive">
+                            <table class="table table-hover table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Order #</th>
+                                        <th>Customer</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="order : ${allOrders}">
+                                        <td th:text="${order.orderNumber}">ORD-123</td>
+                                        <td th:text="${order.user.fullName}">Customer</td>
+                                        <td>₹<span th:text="${#numbers.formatDecimal(order.totalAmount, 0, 2)}">0.00</span></td>
+                                        <td>
+                                            <span class="badge bg-secondary" th:text="${order.status}">Status</span>
+                                        </td>
+                                        <td th:text="${#temporals.format(order.orderDate, 'dd-MM-yyyy')}">Date</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

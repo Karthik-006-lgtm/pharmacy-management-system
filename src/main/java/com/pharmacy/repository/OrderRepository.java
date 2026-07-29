@@ -33,4 +33,13 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     long countTodayOrders();
     
     long countByStatus(Order.OrderStatus status);
+    
+    @Query("SELECT o FROM Order o WHERE o.status IN :statuses AND o.pharmacist IS NULL ORDER BY o.orderDate DESC")
+    List<Order> findByStatusInAndPharmacistIdIsNull(@Param("statuses") List<Order.OrderStatus> statuses);
+    
+    @Query("SELECT o FROM Order o WHERE o.pharmacist.id = :pharmacistId AND o.status <> :status ORDER BY o.orderDate DESC")
+    List<Order> findByPharmacistIdAndStatusNot(@Param("pharmacistId") Long pharmacistId, @Param("status") Order.OrderStatus status);
+    
+    @Query("SELECT o FROM Order o WHERE o.pharmacist.id = :pharmacistId ORDER BY o.orderDate DESC")
+    List<Order> findByPharmacistIdOrderByOrderDateDesc(@Param("pharmacistId") Long pharmacistId);
 }

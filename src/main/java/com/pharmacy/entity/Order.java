@@ -26,6 +26,14 @@ public class Order {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
     
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "pharmacist_id")
+    private User pharmacist;
+    
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean prescriptionRequired = false;
+    
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<OrderItem> orderItems = new ArrayList<>();
@@ -57,7 +65,11 @@ public class Order {
     private String paymentMethod;
     
     @Column(length = 20)
-    private String paymentStatus;
+    @Builder.Default
+    private String paymentStatus = "PENDING";
+    
+    @Column
+    private LocalDateTime paymentCompletedAt;
     
     @Column(nullable = false, updatable = false)
     private LocalDateTime orderDate;
@@ -82,6 +94,7 @@ public class Order {
         PENDING,
         PRESCRIPTION_VERIFICATION,
         APPROVED,
+        REJECTED,
         PACKED,
         SHIPPED,
         DELIVERED,

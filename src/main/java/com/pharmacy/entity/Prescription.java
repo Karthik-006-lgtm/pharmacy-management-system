@@ -48,6 +48,10 @@ public class Prescription {
     @JoinColumn(name = "verified_by")
     private User verifiedBy;
     
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "pharmacist_id")
+    private User pharmacist;
+    
     @PrePersist
     protected void onCreate() {
         uploadedAt = LocalDateTime.now();

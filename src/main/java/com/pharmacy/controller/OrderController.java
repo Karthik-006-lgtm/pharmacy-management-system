@@ -31,21 +31,71 @@ public class OrderController {
     @GetMapping("/checkout")
     public String checkout(Model model) {
         User currentUser = securityUtil.getCurrentUser();
+        
+        // Check if any cart item requires prescription
+        boolean requiresPrescription = orderService.checkPrescriptionRequired(currentUser);
+        
         model.addAttribute("user", currentUser);
+        model.addAttribute("requiresPrescription", requiresPrescription);
         return "orders/checkout";
     }
     
     @PostMapping("/place")
     public String placeOrder(@RequestParam String paymentMethod,
+                             @RequestParam(required = false) MultipartFile prescriptionFile,
                              RedirectAttributes redirectAttributes) {
         try {
             User currentUser = securityUtil.getCurrentUser();
-            Order order = orderService.createOrderWithPayment(currentUser, paymentMethod);
-            redirectAttributes.addFlashAttribute("success", "Order placed successfully! Order Number: " + order.getOrderNumber());
-            return "redirect:/orders/track?orderNumber=" + order.getOrderNumber();
+            boolean requiresPrescription = orderService.checkPrescriptionRequired(currentUser);
+            
+            // Validate prescription upload if required
+            if (requiresPrescription && (prescriptionFile == null || prescriptionFile.isEmpty())) {
+                redirectAttributes.addFlashAttribute("error", "Prescription is required for this order!");
+                return "redirect:/orders/checkout";
+            }
+            
+            Order order = orderService.createOrderWithPaymentAndPrescription(
+                currentUser, paymentMethod, requiresPrescription);
+            
+            // Upload prescription if provided
+            if (requiresPrescription && prescriptionFile != null && !prescriptionFile.isEmpty()) {
+                prescriptionService.uploadPrescription(currentUser, order, prescriptionFile, null);
+            }
+            
+            redirectAttributes.addFlashAttribute("success", 
+                "Order placed successfully! Order Number: " + order.getOrderNumber());
+            return "redirect:/orders/confirmation?orderId=" + order.getId();
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
             return "redirect:/cart";
+        }
+    }
+    
+    @GetMapping("/confirmation")
+    public String orderConfirmation(@RequestParam Long orderId, Model model) {
+        Order order = orderService.getOrderById(orderId);
+        model.addAttribute("order", order);
+        return "orders/confirmation";
+    }
+    
+    @GetMapping("/payment/{orderId}")
+    public String showPaymentPage(@PathVariable Long orderId, Model model) {
+        Order order = orderService.getOrderById(orderId);
+        model.addAttribute("order", order);
+        return "orders/payment";
+    }
+    
+    @PostMapping("/complete-payment/{orderId}")
+    public String completePayment(@PathVariable Long orderId,
+                                  @RequestParam String paymentMethod,
+                                  RedirectAttributes redirectAttributes) {
+        try {
+            orderService.completePayment(orderId);
+            redirectAttributes.addFlashAttribute("success", "Payment completed successfully!");
+            return "redirect:/orders/confirmation?orderId=" + orderId;
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/orders/payment/" + orderId;
         }
     }
     
@@ -71,7 +121,8 @@ public class OrderController {
                                      RedirectAttributes redirectAttributes) {
         try {
             User currentUser = securityUtil.getCurrentUser();
-            prescriptionService.uploadPrescription(currentUser, orderId, file);
+            Order order = orderService.getOrderById(orderId);
+            prescriptionService.uploadPrescription(currentUser, order, file, null);
             redirectAttributes.addFlashAttribute("success", "Prescription uploaded successfully");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Failed to upload prescription: " + e.getMessage());

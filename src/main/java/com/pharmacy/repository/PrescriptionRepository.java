@@ -17,4 +17,7 @@ public interface PrescriptionRepository extends JpaRepository<Prescription, Long
     
     @Query("SELECT p FROM Prescription p WHERE p.user.id = :userId ORDER BY p.uploadedAt DESC")
     List<Prescription> findByUserId(@Param("userId") Long userId);
+    
+    @Query("SELECT p FROM Prescription p WHERE p.pharmacist.id = :pharmacistId ORDER BY p.uploadedAt DESC")
+    List<Prescription> findByPharmacistId(@Param("pharmacistId") Long pharmacistId);
 }

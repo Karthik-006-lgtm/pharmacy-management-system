@@ -5,13 +5,18 @@
     <nav th:replace="~{fragments/header :: navbar}"></nav>
     
     <div class="container my-5">
-        <h2 class="mb-4">Checkout</h2>
+        <h2 class="mb-4"><i class="bi bi-cart-check"></i> Checkout</h2>
+        
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle"></i> <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
         
         <div class="row">
-            <div class="col-md-7">
-                <div class="card mb-4">
+            <div class="col-lg-8">
+                <div class="card mb-4 shadow-sm">
                     <div class="card-body">
-                        <h4 class="card-title mb-4">Shipping Address</h4>
+                        <h4 class="card-title mb-4"><i class="bi bi-geo-alt"></i> Shipping Address</h4>
                         <p><strong th:text="${user.fullName}">Full Name</strong></p>
                         <p th:text="${user.address}">Address</p>
                         <p th:text="${user.city + ', ' + user.state + ' - ' + user.pincode}">City, State - Pincode</p>
@@ -22,102 +27,158 @@
                     </div>
                 </div>
                 
-                <div class="card mb-4">
+                <div class="card mb-4 shadow-sm" th:if="${requiresPrescription}">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0"><i class="bi bi-file-medical"></i> Prescription Required</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-3">
+                            <i class="bi bi-exclamation-circle text-warning"></i> 
+                            Your cart contains prescription medicines. Please upload a valid prescription to proceed.
+                        </p>
+                        <div class="alert alert-info">
+                            <small>
+                                <i class="bi bi-info-circle"></i> 
+                                Accepted formats: PDF, JPG, PNG | Max size: 5MB
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card mb-4 shadow-sm">
                     <div class="card-body">
                         <h4 class="card-title mb-4"><i class="bi bi-credit-card"></i> Payment Method</h4>
-                        <form th:action="@{/orders/place}" method="post" id="checkoutForm">
+                        <form th:action="@{/orders/place}" method="post" id="checkoutForm" enctype="multipart/form-data">
+                            
+                            <div th:if="${requiresPrescription}" class="mb-4">
+                                <label class="form-label fw-bold text-danger">
+                                    <i class="bi bi-file-medical"></i> Upload Prescription *
+                                </label>
+                                <input type="file" name="prescriptionFile" class="form-control" 
+                                       accept=".pdf,.jpg,.jpeg,.png" required>
+                                <small class="text-muted">Upload a clear image or PDF of your doctor's prescription</small>
+                            </div>
+                            
+                            <h5 class="mb-3">Select Payment Method:</h5>
                             <div class="row g-3">
-                                <!-- GPay -->
-                                <div class="col-md-6">
+                                <div class="col-sm-6 col-md-4">
                                     <input type="radio" class="btn-check" name="paymentMethod" id="gpay" value="Google Pay" required>
-                                    <label class="btn btn-outline-primary w-100 p-3" for="gpay">
-                                        <i class="bi bi-google fs-3 d-block mb-2"></i>
+                                    <label class="btn btn-outline-success w-100 py-3 h-100" for="gpay">
+                                        <i class="bi bi-google fs-2 d-block mb-2 text-success"></i>
                                         <span class="fw-bold">Google Pay</span>
                                     </label>
                                 </div>
                                 
-                                <!-- PhonePe -->
-                                <div class="col-md-6">
+                                <div class="col-sm-6 col-md-4">
                                     <input type="radio" class="btn-check" name="paymentMethod" id="phonepe" value="PhonePe">
-                                    <label class="btn btn-outline-primary w-100 p-3" for="phonepe">
-                                        <i class="bi bi-phone fs-3 d-block mb-2"></i>
+                                    <label class="btn btn-outline-primary w-100 py-3 h-100" for="phonepe">
+                                        <i class="bi bi-phone fs-2 d-block mb-2 text-primary"></i>
                                         <span class="fw-bold">PhonePe</span>
                                     </label>
                                 </div>
                                 
-                                <!-- Paytm -->
-                                <div class="col-md-6">
+                                <div class="col-sm-6 col-md-4">
                                     <input type="radio" class="btn-check" name="paymentMethod" id="paytm" value="Paytm">
-                                    <label class="btn btn-outline-primary w-100 p-3" for="paytm">
-                                        <i class="bi bi-wallet2 fs-3 d-block mb-2"></i>
+                                    <label class="btn btn-outline-info w-100 py-3 h-100" for="paytm">
+                                        <i class="bi bi-wallet2 fs-2 d-block mb-2 text-info"></i>
                                         <span class="fw-bold">Paytm</span>
                                     </label>
                                 </div>
                                 
-                                <!-- Credit Card -->
-                                <div class="col-md-6">
+                                <div class="col-sm-6 col-md-4">
                                     <input type="radio" class="btn-check" name="paymentMethod" id="credit" value="Credit Card">
-                                    <label class="btn btn-outline-primary w-100 p-3" for="credit">
-                                        <i class="bi bi-credit-card fs-3 d-block mb-2"></i>
+                                    <label class="btn btn-outline-warning w-100 py-3 h-100" for="credit">
+                                        <i class="bi bi-credit-card fs-2 d-block mb-2 text-warning"></i>
                                         <span class="fw-bold">Credit Card</span>
                                     </label>
                                 </div>
                                 
-                                <!-- Debit Card -->
-                                <div class="col-md-6">
+                                <div class="col-sm-6 col-md-4">
                                     <input type="radio" class="btn-check" name="paymentMethod" id="debit" value="Debit Card">
-                                    <label class="btn btn-outline-primary w-100 p-3" for="debit">
-                                        <i class="bi bi-credit-card-2-front fs-3 d-block mb-2"></i>
+                                    <label class="btn btn-outline-secondary w-100 py-3 h-100" for="debit">
+                                        <i class="bi bi-credit-card-2-front fs-2 d-block mb-2 text-secondary"></i>
                                         <span class="fw-bold">Debit Card</span>
                                     </label>
                                 </div>
                                 
-                                <!-- Net Banking -->
-                                <div class="col-md-6">
+                                <div class="col-sm-6 col-md-4">
                                     <input type="radio" class="btn-check" name="paymentMethod" id="netbanking" value="Net Banking">
-                                    <label class="btn btn-outline-primary w-100 p-3" for="netbanking">
-                                        <i class="bi bi-bank fs-3 d-block mb-2"></i>
+                                    <label class="btn btn-outline-dark w-100 py-3 h-100" for="netbanking">
+                                        <i class="bi bi-bank fs-2 d-block mb-2"></i>
                                         <span class="fw-bold">Net Banking</span>
                                     </label>
                                 </div>
                                 
-                                <!-- Cash on Delivery -->
-                                <div class="col-md-12">
+                                <div class="col-sm-6 col-md-4">
                                     <input type="radio" class="btn-check" name="paymentMethod" id="cod" value="Cash on Delivery">
-                                    <label class="btn btn-outline-success w-100 p-3" for="cod">
-                                        <i class="bi bi-cash-coin fs-3 d-block mb-2"></i>
+                                    <label class="btn btn-outline-danger w-100 py-3 h-100" for="cod">
+                                        <i class="bi bi-cash-coin fs-2 d-block mb-2 text-danger"></i>
                                         <span class="fw-bold">Cash on Delivery</span>
                                     </label>
                                 </div>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <button type="submit" class="btn btn-success btn-lg w-100">
+                                    <i class="bi bi-check-circle"></i> Place Order
+                                </button>
                             </div>
                         </form>
                     </div>
                 </div>
             </div>
             
-            <div class="col-md-5">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title mb-4">Review Order</h4>
-                        <div class="alert alert-warning">
-                            <i class="bi bi-exclamation-triangle"></i>
-                            Please ensure all information is correct before placing your order.
-                        </div>
-                        
-                        <button type="submit" form="checkoutForm" class="btn btn-primary w-100 btn-lg">
-                            <i class="bi bi-check-circle"></i> Confirm Payment & Place Order
-                        </button>
-                        
-                        <a th:href="@{/cart}" class="btn btn-outline-secondary w-100 mt-2">
-                            <i class="bi bi-arrow-left"></i> Back to Cart
-                        </a>
+            <div class="col-lg-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Order Summary</h5>
+                    </div>
+                    <div class="card-body" id="cartSummary">
+                        <p class="text-center text-muted">Loading...</p>
+                    </div>
+                </div>
+                
+                <div class="card shadow-sm mt-3">
+                    <div class="card-body text-center">
+                        <i class="bi bi-shield-check text-success" style="font-size: 3rem;"></i>
+                        <h6 class="mt-2">Secure Checkout</h6>
+                        <p class="small text-muted mb-0">Your payment information is encrypted and secure</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
     
-    <footer th:replace="~{fragments/header :: footer}"></footer>
-    <div th:replace="~{fragments/header :: scripts}"></div>
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+    
+    <script>
+        // Load cart summary
+        fetch('/api/cart/summary')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('cartSummary').innerHTML = `
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Items:</span>
+                        <span>${data.itemCount}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal:</span>
+                        <span>₹${data.subtotal.toFixed(2)}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Shipping:</span>
+                        <span class="text-success">Free</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <strong>Total:</strong>
+                        <strong class="text-success">₹${data.total.toFixed(2)}</strong>
+                    </div>
+                `;
+            })
+            .catch(error => {
+                document.getElementById('cartSummary').innerHTML = '<p class="text-danger">Error loading summary</p>';
+            });
+    </script>
 </body>
 </html>

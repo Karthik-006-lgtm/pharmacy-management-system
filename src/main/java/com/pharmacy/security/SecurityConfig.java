@@ -45,15 +45,16 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/", "/register", "/login", "/css/**", "/js/**", "/images/**").permitAll()
+                .requestMatchers("/", "/register", "/login", "/css/**", "/js/**", "/images/**", "/h2-console/**").permitAll()
                 .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
+                .requestMatchers("/pharmacist/**").hasAuthority("ROLE_PHARMACIST")
                 .requestMatchers("/cart/**", "/orders/**", "/profile/**", "/checkout/**").hasAnyAuthority("ROLE_CUSTOMER", "ROLE_ADMIN")
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
                 .loginPage("/login")
                 .loginProcessingUrl("/login")
-                .defaultSuccessUrl("/home", true)
+                .successHandler(new CustomAuthenticationSuccessHandler())
                 .failureUrl("/login?error=true")
                 .permitAll()
             )
@@ -66,7 +67,9 @@ public class SecurityConfig {
             )
             .exceptionHandling(exception -> exception
                 .accessDeniedPage("/error/403")
-            );
+            )
+            .csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**"))
+            .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
         
         return http.build();
     }

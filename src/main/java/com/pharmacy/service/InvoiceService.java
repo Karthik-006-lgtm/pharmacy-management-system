@@ -24,11 +24,12 @@ public class InvoiceService {
     }
     
     @Transactional
+    @SuppressWarnings("null")
     public Invoice generateInvoice(Order order, String paymentMethod) {
         String invoiceNumber = generateInvoiceNumber();
         
         BigDecimal subtotal = order.getTotalAmount();
-        BigDecimal taxRate = new BigDecimal("0.18");
+        // Tax calculation: 18% GST
         BigDecimal taxableAmount = subtotal.divide(new BigDecimal("1.18"), 2, RoundingMode.HALF_UP);
         BigDecimal tax = subtotal.subtract(taxableAmount);
         
@@ -43,10 +44,14 @@ public class InvoiceService {
                 .totalAmount(subtotal)
                 .build();
         
-        return invoiceRepository.save(invoice);
+        Invoice savedInvoice = invoiceRepository.save(invoice);
+        return savedInvoice;
     }
     
     public Invoice findById(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("Invoice ID cannot be null");
+        }
         return invoiceRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Invoice not found"));
     }

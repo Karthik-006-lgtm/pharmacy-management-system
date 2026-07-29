@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Medicine</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/pharmacist/dashboard">
+                <i class="bi bi-hospital"></i> Pharmacist Portal
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/pharmacist/dashboard">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/pharmacist/medicines">Medicines</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/pharmacist/orders/pending">Orders</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/pharmacist/profile">Profile</a>
+                    </li>
+                    <li class="nav-item">
+                        <form th:action="@{/logout}" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-link nav-link">Logout</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4 mb-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0"><i class="bi bi-pencil"></i> Edit Medicine</h4>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/pharmacist/medicines/edit/{id}(id=${medicine.id})}" 
+                              th:object="${medicineDto}" method="post">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Medicine Name *</label>
+                                    <input type="text" th:field="*{name}" class="form-control" 
+                                           th:classappend="${#fields.hasErrors('name')} ? 'is-invalid' : ''" required>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('name')}" 
+                                         th:errors="*{name}">Error</div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Brand</label>
+                                    <input type="text" th:field="*{brand}" class="form-control">
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Category *</label>
+                                    <select th:field="*{categoryId}" class="form-select" 
+                                            th:classappend="${#fields.hasErrors('categoryId')} ? 'is-invalid' : ''" required>
+                                        <option value="">Select Category</option>
+                                        <option th:each="cat : ${categories}" 
+                                                th:value="${cat.id}" 
+                                                th:text="${cat.name}">Category</option>
+                                    </select>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('categoryId')}" 
+                                         th:errors="*{categoryId}">Error</div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Manufacturer</label>
+                                    <input type="text" th:field="*{manufacturer}" class="form-control">
+                                </div>
+
+                                <div class="col-12 mb-3">
+                                    <label class="form-label">Description</label>
+                                    <textarea th:field="*{description}" class="form-control" rows="3"></textarea>
+                                </div>
+
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Price (₹) *</label>
+                                    <input type="number" th:field="*{price}" class="form-control" 
+                                           step="0.01" min="0.01"
+                                           th:classappend="${#fields.hasErrors('price')} ? 'is-invalid' : ''" required>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('price')}" 
+                                         th:errors="*{price}">Error</div>
+                                </div>
+
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Tax Percentage (%)</label>
+                                    <input type="number" th:field="*{taxPercentage}" class="form-control" 
+                                           step="0.01" min="0" max="100">
+                                </div>
+
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Stock Quantity *</label>
+                                    <input type="number" th:field="*{stock}" class="form-control" 
+                                           min="0"
+                                           th:classappend="${#fields.hasErrors('stock')} ? 'is-invalid' : ''" required>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('stock')}" 
+                                         th:errors="*{stock}">Error</div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Batch Number</label>
+                                    <input type="text" th:field="*{batchNumber}" class="form-control">
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Image URL</label>
+                                    <input type="text" th:field="*{imageUrl}" class="form-control">
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Manufacturing Date *</label>
+                                    <input type="date" th:field="*{manufactureDate}" class="form-control" 
+                                           th:classappend="${#fields.hasErrors('manufactureDate')} ? 'is-invalid' : ''" required>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('manufactureDate')}" 
+                                         th:errors="*{manufactureDate}">Error</div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Expiry Date *</label>
+                                    <input type="date" th:field="*{expiryDate}" class="form-control" 
+                                           th:classappend="${#fields.hasErrors('expiryDate')} ? 'is-invalid' : ''" required>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('expiryDate')}" 
+                                         th:errors="*{expiryDate}">Error</div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-check">
+                                        <input type="checkbox" th:field="*{prescriptionRequired}" 
+                                               class="form-check-input" id="prescriptionRequired">
+                                        <label class="form-check-label" for="prescriptionRequired">
+                                            <i class="bi bi-file-medical"></i> Prescription Required
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-check">
+                                        <input type="checkbox" th:field="*{active}" 
+                                               class="form-check-input" id="active">
+                                        <label class="form-check-label" for="active">
+                                            <i class="bi bi-check-circle"></i> Active
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-save"></i> Update Medicine
+                                </button>
+                                <a href="/pharmacist/medicines" class="btn btn-secondary">
+                                    <i class="bi bi-x-circle"></i> Cancel
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

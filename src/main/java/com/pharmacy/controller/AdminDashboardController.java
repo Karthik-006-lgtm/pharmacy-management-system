@@ -28,6 +28,15 @@ public class AdminDashboardController {
     
     @GetMapping
     public String dashboard(Model model) {
+        return loadDashboard(model);
+    }
+    
+    @GetMapping("/dashboard")
+    public String dashboardAlias(Model model) {
+        return loadDashboard(model);
+    }
+    
+    private String loadDashboard(Model model) {
         model.addAttribute("totalMedicines", medicineService.getTotalMedicines());
         model.addAttribute("totalOrders", orderService.getTotalOrders());
         model.addAttribute("totalCustomers", userService.getTotalCustomers());

@@ -143,4 +143,96 @@ public class MedicineService {
     public long getTotalMedicines() {
         return medicineRepository.countByActiveTrue();
     }
+    
+    public List<Medicine> getByPharmacist(Long pharmacistId) {
+        return medicineRepository.findByUploadedById(pharmacistId);
+    }
+    
+    public long countByPharmacist(Long pharmacistId) {
+        return medicineRepository.countByUploadedById(pharmacistId);
+    }
+    
+    @Transactional
+    public Medicine createByPharmacist(MedicineDto dto, com.pharmacy.entity.User pharmacist) {
+        Category category = categoryService.findById(dto.getCategoryId());
+        
+        Medicine medicine = Medicine.builder()
+                .name(dto.getName())
+                .brand(dto.getBrand())
+                .category(category)
+                .manufacturer(dto.getManufacturer())
+                .description(dto.getDescription())
+                .price(dto.getPrice())
+                .taxPercentage(dto.getTaxPercentage())
+                .stock(dto.getStock())
+                .expiryDate(dto.getExpiryDate())
+                .manufactureDate(dto.getManufactureDate())
+                .batchNumber(dto.getBatchNumber())
+                .prescriptionRequired(dto.getPrescriptionRequired() != null ? dto.getPrescriptionRequired() : false)
+                .imageUrl(dto.getImageUrl())
+                .uploadedBy(pharmacist)
+                .active(true)
+                .build();
+        
+        Medicine saved = medicineRepository.save(medicine);
+        auditLogService.log("MEDICINE_ADDED", "Medicine", saved.getId(), 
+            "Pharmacist added medicine: " + saved.getName(), pharmacist);
+        return saved;
+    }
+    
+    @Transactional
+    public Medicine updateByPharmacist(Long id, MedicineDto dto) {
+        Medicine medicine = findById(id);
+        Category category = categoryService.findById(dto.getCategoryId());
+        
+        medicine.setName(dto.getName());
+        medicine.setBrand(dto.getBrand());
+        medicine.setCategory(category);
+        medicine.setManufacturer(dto.getManufacturer());
+        medicine.setDescription(dto.getDescription());
+        medicine.setPrice(dto.getPrice());
+        medicine.setTaxPercentage(dto.getTaxPercentage());
+        medicine.setStock(dto.getStock());
+        medicine.setExpiryDate(dto.getExpiryDate());
+        medicine.setManufactureDate(dto.getManufactureDate());
+        medicine.setBatchNumber(dto.getBatchNumber());
+        medicine.setPrescriptionRequired(dto.getPrescriptionRequired() != null ? dto.getPrescriptionRequired() : false);
+        if (dto.getImageUrl() != null) {
+            medicine.setImageUrl(dto.getImageUrl());
+        }
+        medicine.setActive(dto.getActive() != null ? dto.getActive() : true);
+        
+        return medicineRepository.save(medicine);
+    }
+    
+    public Medicine getById(Long id) {
+        return findById(id);
+    }
+    
+    @Transactional
+    public void deleteById(Long id) {
+        Medicine medicine = findById(id);
+        medicine.setActive(false);
+        medicineRepository.save(medicine);
+    }
+    
+    public MedicineDto convertToDto(Medicine medicine) {
+        MedicineDto dto = new MedicineDto();
+        dto.setId(medicine.getId());
+        dto.setName(medicine.getName());
+        dto.setBrand(medicine.getBrand());
+        dto.setCategoryId(medicine.getCategory().getId());
+        dto.setManufacturer(medicine.getManufacturer());
+        dto.setDescription(medicine.getDescription());
+        dto.setPrice(medicine.getPrice());
+        dto.setTaxPercentage(medicine.getTaxPercentage());
+        dto.setStock(medicine.getStock());
+        dto.setExpiryDate(medicine.getExpiryDate());
+        dto.setManufactureDate(medicine.getManufactureDate());
+        dto.setBatchNumber(medicine.getBatchNumber());
+        dto.setPrescriptionRequired(medicine.getPrescriptionRequired());
+        dto.setImageUrl(medicine.getImageUrl());
+        dto.setActive(medicine.getActive());
+        return dto;
+    }
 }

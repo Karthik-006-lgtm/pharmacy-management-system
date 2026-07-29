@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Details</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/pharmacist/dashboard">
+                <i class="bi bi-hospital"></i> Pharmacist Portal
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/pharmacist/dashboard">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/pharmacist/medicines">Medicines</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/pharmacist/orders/pending">Orders</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/pharmacist/profile">Profile</a>
+                    </li>
+                    <li class="nav-item">
+                        <form th:action="@{/logout}" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-link nav-link">Logout</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4 mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-box-seam"></i> Order Details</h2>
+            <a href="/pharmacist/orders/pending" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Orders
+            </a>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            Order #<span th:text="${order.orderNumber}">ORD-123</span>
+                            <span class="badge bg-light text-dark ms-2" th:text="${order.status}">Status</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <h6>Customer Information</h6>
+                                <p class="mb-1"><strong>Name:</strong> <span th:text="${order.user.fullName}">Name</span></p>
+                                <p class="mb-1"><strong>Email:</strong> <span th:text="${order.user.email}">Email</span></p>
+                                <p class="mb-1"><strong>Phone:</strong> <span th:text="${order.contactPhone}">Phone</span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Order Information</h6>
+                                <p class="mb-1"><strong>Order Date:</strong> <span th:text="${#temporals.format(order.orderDate, 'dd-MM-yyyy HH:mm')}">Date</span></p>
+                                <p class="mb-1"><strong>Payment Method:</strong> <span th:text="${order.paymentMethod}">Method</span></p>
+                                <p class="mb-1"><strong>Payment Status:</strong> 
+                                    <span class="badge" 
+                                          th:classappend="${order.paymentStatus == 'PAID'} ? 'bg-success' : 'bg-warning'"
+                                          th:text="${order.paymentStatus}">Status</span>
+                                </p>
+                            </div>
+                        </div>
+
+                        <h6>Shipping Address</h6>
+                        <p class="text-muted" 
+                           th:text="${order.shippingAddress + ', ' + order.shippingCity + ', ' + order.shippingState + ' - ' + order.shippingPincode}">
+                            Address
+                        </p>
+
+                        <h6 class="mt-3">Order Items</h6>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Medicine</th>
+                                        <th>Brand</th>
+                                        <th>Quantity</th>
+                                        <th>Price</th>
+                                        <th>Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="item : ${order.orderItems}">
+                                        <td>
+                                            <span th:text="${item.medicine.name}">Medicine</span>
+                                            <span th:if="${item.medicine.prescriptionRequired}" 
+                                                  class="badge bg-warning text-dark ms-1">
+                                                <i class="bi bi-file-medical"></i> Rx Required
+                                            </span>
+                                        </td>
+                                        <td th:text="${item.medicine.brand}">Brand</td>
+                                        <td th:text="${item.quantity}">1</td>
+                                        <td>₹<span th:text="${#numbers.formatDecimal(item.price, 0, 2)}">0.00</span></td>
+                                        <td>₹<span th:text="${#numbers.formatDecimal(item.subtotal, 0, 2)}">0.00</span></td>
+                                    </tr>
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="4" class="text-end"><strong>Total Amount:</strong></td>
+                                        <td><strong>₹<span th:text="${#numbers.formatDecimal(order.totalAmount, 0, 2)}">0.00</span></strong></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card shadow-sm mb-4" th:if="${prescription != null}">
+                    <div class="card-header bg-warning text-dark">
+                        <h6 class="mb-0"><i class="bi bi-file-medical"></i> Prescription</h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-2"><strong>File Name:</strong> <span th:text="${prescription.fileName}">prescription.pdf</span></p>
+                        <p class="mb-2"><strong>Uploaded:</strong> <span th:text="${#temporals.format(prescription.uploadedAt, 'dd-MM-yyyy HH:mm')}">Date</span></p>
+                        <p class="mb-3"><strong>Status:</strong> 
+                            <span class="badge" 
+                                  th:classappend="${prescription.status.name() == 'APPROVED'} ? 'bg-success' : 
+                                                  (${prescription.status.name() == 'REJECTED'} ? 'bg-danger' : 'bg-warning')"
+                                  th:text="${prescription.status}">Status</span>
+                        </p>
+                        <a th:href="@{/prescriptions/download/{id}(id=${prescription.id})}" 
+                           class="btn btn-primary w-100 mb-2" target="_blank">
+                            <i class="bi bi-download"></i> View Prescription
+                        </a>
+                        <div th:if="${prescription.status.name() == 'PENDING'}">
+                            <form th:action="@{/admin/prescriptions/approve/{id}(id=${prescription.id})}" method="post">
+                                <input type="hidden" name="remarks" value="Approved by pharmacist">
+                                <button type="submit" class="btn btn-success w-100 mb-2">
+                                    <i class="bi bi-check-circle"></i> Approve Prescription
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm" th:if="${order.status.name() == 'PENDING' or order.status.name() == 'PRESCRIPTION_VERIFICATION'}">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0">Actions</h6>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/pharmacist/orders/accept/{id}(id=${order.id})}" method="post" class="mb-2">
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="bi bi-check-circle"></i> Accept Order
+                            </button>
+                        </form>
+                        <button type="button" class="btn btn-danger w-100" 
+                                data-bs-toggle="modal" data-bs-target="#rejectModal">
+                            <i class="bi bi-x-circle"></i> Reject Order
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reject Modal -->
+        <div class="modal fade" id="rejectModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title">Reject Order</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form th:action="@{/pharmacist/orders/reject/{id}(id=${order.id})}" method="post">
+                        <div class="modal-body">
+                            <p>Please provide a reason for rejecting this order:</p>
+                            <textarea name="remarks" class="form-control" rows="3" 
+                                      placeholder="Reason for rejection..." required></textarea>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-danger">Confirm Reject</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

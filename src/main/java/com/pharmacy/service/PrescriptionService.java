@@ -5,7 +5,6 @@ import com.pharmacy.entity.Prescription;
 import com.pharmacy.entity.User;
 import com.pharmacy.exception.ResourceNotFoundException;
 import com.pharmacy.repository.PrescriptionRepository;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -14,7 +13,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,85 +21,90 @@ import java.util.UUID;
 public class PrescriptionService {
     
     private final PrescriptionRepository prescriptionRepository;
-    private final OrderService orderService;
+    private final String uploadDir = "uploads/prescriptions/";
     
-    @Value("${app.upload.dir}")
-    private String uploadDir;
-    
-    public PrescriptionService(PrescriptionRepository prescriptionRepository, OrderService orderService) {
+    public PrescriptionService(PrescriptionRepository prescriptionRepository) {
         this.prescriptionRepository = prescriptionRepository;
-        this.orderService = orderService;
+        
+        try {
+            Files.createDirectories(Paths.get(uploadDir));
+        } catch (IOException e) {
+            throw new RuntimeException("Could not create upload directory", e);
+        }
     }
     
     @Transactional
-    public Prescription uploadPrescription(User user, Long orderId, MultipartFile file) throws IOException {
-        Order order = orderService.findById(orderId);
+    public Prescription uploadPrescription(User user, Order order, MultipartFile file, User pharmacist) throws IOException {
+        String originalFilename = file.getOriginalFilename();
+        String extension = originalFilename != null ? 
+            originalFilename.substring(originalFilename.lastIndexOf(".")) : ".pdf";
+        String filename = UUID.randomUUID().toString() + extension;
         
-        if (!order.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("Unauthorized access");
-        }
-        
-        String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-        Path uploadPath = Paths.get(uploadDir);
-        
-        if (!Files.exists(uploadPath)) {
-            Files.createDirectories(uploadPath);
-        }
-        
-        Path filePath = uploadPath.resolve(fileName);
-        Files.write(filePath, file.getBytes());
+        Path filePath = Paths.get(uploadDir + filename);
+        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
         
         Prescription prescription = Prescription.builder()
                 .user(user)
                 .order(order)
-                .fileName(file.getOriginalFilename())
+                .fileName(originalFilename)
                 .filePath(filePath.toString())
                 .status(Prescription.PrescriptionStatus.PENDING)
+                .pharmacist(pharmacist)
                 .build();
         
         return prescriptionRepository.save(prescription);
     }
     
-    public Prescription findById(Long id) {
+    public Prescription getByOrderId(Long orderId) {
+        return prescriptionRepository.findByOrderId(orderId)
+                .orElse(null);
+    }
+    
+    public Prescription getById(Long id) {
         return prescriptionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Prescription not found"));
     }
     
-    public Prescription findByOrderId(Long orderId) {
-        return prescriptionRepository.findByOrderId(orderId)
-                .orElse(null);
+    public List<Prescription> getByUserId(Long userId) {
+        return prescriptionRepository.findByUserId(userId);
+    }
+    
+    public List<Prescription> getByPharmacistId(Long pharmacistId) {
+        return prescriptionRepository.findByPharmacistId(pharmacistId);
     }
     
     public List<Prescription> getPendingPrescriptions() {
         return prescriptionRepository.findByStatus(Prescription.PrescriptionStatus.PENDING);
     }
     
-    public List<Prescription> getUserPrescriptions(User user) {
-        return prescriptionRepository.findByUserId(user.getId());
+    public Prescription findById(Long id) {
+        return getById(id);
+    }
+    
+    public Prescription findByOrderId(Long orderId) {
+        return getByOrderId(orderId);
     }
     
     @Transactional
-    public Prescription approvePrescription(Long prescriptionId, User admin) {
-        Prescription prescription = findById(prescriptionId);
+    public Prescription approvePrescription(Long id, User approver) {
+        return approvePrescription(id, approver, "Approved");
+    }
+    
+    @Transactional
+    public Prescription approvePrescription(Long id, User approver, String remarks) {
+        Prescription prescription = getById(id);
         prescription.setStatus(Prescription.PrescriptionStatus.APPROVED);
-        prescription.setVerifiedAt(LocalDateTime.now());
-        prescription.setVerifiedBy(admin);
-        
-        orderService.updateOrderStatus(prescription.getOrder().getId(), Order.OrderStatus.APPROVED);
-        
+        prescription.setVerifiedBy(approver);
+        prescription.setAdminRemarks(remarks);
         return prescriptionRepository.save(prescription);
     }
     
     @Transactional
-    public Prescription rejectPrescription(Long prescriptionId, User admin, String remarks) {
-        Prescription prescription = findById(prescriptionId);
+    public Prescription rejectPrescription(Long id, User approver, String remarks) {
+        Prescription prescription = getById(id);
         prescription.setStatus(Prescription.PrescriptionStatus.REJECTED);
-        prescription.setVerifiedAt(LocalDateTime.now());
-        prescription.setVerifiedBy(admin);
+        prescription.setVerifiedBy(approver);
         prescription.setAdminRemarks(remarks);
-        
-        orderService.updateOrderStatus(prescription.getOrder().getId(), Order.OrderStatus.CANCELLED);
-        
         return prescriptionRepository.save(prescription);
     }
 }

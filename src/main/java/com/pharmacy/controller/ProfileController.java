@@ -22,11 +22,18 @@ public class ProfileController {
     private final UserService userService;
     private final SecurityUtil securityUtil;
     private final InvoiceService invoiceService;
+    private final com.pharmacy.service.OrderService orderService;
+    private final com.pharmacy.service.PrescriptionService prescriptionService;
     
-    public ProfileController(UserService userService, SecurityUtil securityUtil, InvoiceService invoiceService) {
+    public ProfileController(UserService userService, SecurityUtil securityUtil, 
+                           InvoiceService invoiceService,
+                           com.pharmacy.service.OrderService orderService,
+                           com.pharmacy.service.PrescriptionService prescriptionService) {
         this.userService = userService;
         this.securityUtil = securityUtil;
         this.invoiceService = invoiceService;
+        this.orderService = orderService;
+        this.prescriptionService = prescriptionService;
     }
     
     @GetMapping
@@ -34,6 +41,8 @@ public class ProfileController {
         User currentUser = securityUtil.getCurrentUser();
         model.addAttribute("user", currentUser);
         model.addAttribute("invoices", invoiceService.getUserInvoices(currentUser));
+        model.addAttribute("orders", orderService.getUserOrders(currentUser));
+        model.addAttribute("prescriptions", prescriptionService.getByUserId(currentUser.getId()));
         return "profile/view";
     }
     

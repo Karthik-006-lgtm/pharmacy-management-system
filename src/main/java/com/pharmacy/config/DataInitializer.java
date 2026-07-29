@@ -26,7 +26,9 @@ public class DataInitializer {
                                       CategoryRepository categoryRepository, MedicineRepository medicineRepository,
                                       PasswordEncoder passwordEncoder) {
         return args -> {
+            System.out.println("🚀 DATA INITIALIZER STARTING...");
             if (roleRepository.count() == 0) {
+                System.out.println("📝 Initializing Roles and Users...");
                 Role adminRole = new Role();
                 adminRole.setName("ROLE_ADMIN");
                 roleRepository.save(adminRole);
@@ -72,9 +74,11 @@ public class DataInitializer {
                         .enabled(true)
                         .build();
                 userRepository.save(customer);
+                System.out.println("✅ Roles and Users initialized successfully!");
             }
             
             if (categoryRepository.count() == 0) {
+                System.out.println("📁 Initializing Categories...");
                 Category[] categories = {
                         Category.builder().name("Pain Relief").description("Medicines for pain management").active(true).build(),
                         Category.builder().name("Cold & Flu").description("Cold and flu remedies").active(true).build(),
@@ -89,9 +93,11 @@ public class DataInitializer {
                 for (Category category : categories) {
                     categoryRepository.save(category);
                 }
+                System.out.println("✅ Categories initialized successfully!");
             }
             
             if (medicineRepository.count() == 0) {
+                System.out.println("💊 Initializing 40+ Medicines...");
                 Category painRelief = categoryRepository.findByName("Pain Relief").orElseThrow();
                 Category coldFlu = categoryRepository.findByName("Cold & Flu").orElseThrow();
                 Category antibiotics = categoryRepository.findByName("Antibiotics").orElseThrow();
@@ -646,7 +652,15 @@ public class DataInitializer {
                 for (Medicine medicine : medicines) {
                     medicineRepository.save(medicine);
                 }
+                System.out.println("✅ 40+ Medicines initialized successfully!");
             }
+            
+            System.out.println("🎉 DATA INITIALIZER COMPLETED SUCCESSFULLY!");
+            System.out.println("📊 Database Statistics:");
+            System.out.println("   - Roles: " + roleRepository.count());
+            System.out.println("   - Users: " + userRepository.count());
+            System.out.println("   - Categories: " + categoryRepository.count());
+            System.out.println("   - Medicines: " + medicineRepository.count());
         };
     }
 }

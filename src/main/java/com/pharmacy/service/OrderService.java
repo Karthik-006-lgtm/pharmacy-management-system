@@ -31,6 +31,7 @@ public class OrderService {
     }
     
     @Transactional
+    @SuppressWarnings("null")
     public Order createOrderWithPayment(User user, String paymentMethod) {
         List<Cart> cartItems = cartService.getCartItems(user);
         
@@ -83,6 +84,9 @@ public class OrderService {
     }
     
     public Order findById(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("Order ID cannot be null");
+        }
         return orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
     }
@@ -137,5 +141,117 @@ public class OrderService {
     public BigDecimal getTotalRevenue() {
         BigDecimal revenue = orderRepository.calculateTotalRevenue();
         return revenue != null ? revenue : BigDecimal.ZERO;
+    }
+    
+    public List<Order> getPharmacistPendingOrders(Long pharmacistId) {
+        return orderRepository.findByStatusInAndPharmacistIdIsNull(
+            List.of(Order.OrderStatus.PENDING, Order.OrderStatus.PRESCRIPTION_VERIFICATION));
+    }
+    
+    public List<Order> getPharmacistAcceptedOrders(Long pharmacistId) {
+        return orderRepository.findByPharmacistIdAndStatusNot(pharmacistId, Order.OrderStatus.REJECTED);
+    }
+    
+    public List<Order> getPharmacistAllOrders(Long pharmacistId) {
+        return orderRepository.findByPharmacistIdOrderByOrderDateDesc(pharmacistId);
+    }
+    
+    public Order getOrderById(Long id) {
+        return findById(id);
+    }
+    
+    @Transactional
+    public void acceptOrderByPharmacist(Long orderId, User pharmacist) {
+        Order order = findById(orderId);
+        order.setPharmacist(pharmacist);
+        order.setStatus(Order.OrderStatus.APPROVED);
+        orderRepository.save(order);
+    }
+    
+    @Transactional
+    public void rejectOrderByPharmacist(Long orderId, String remarks) {
+        Order order = findById(orderId);
+        order.setStatus(Order.OrderStatus.REJECTED);
+        order.setRemarks(remarks);
+        orderRepository.save(order);
+    }
+    
+    @Transactional
+    @SuppressWarnings("null")
+    public Order createOrderWithPaymentAndPrescription(User user, String paymentMethod, boolean requiresPrescription) {
+        List<Cart> cartItems = cartService.getCartItems(user);
+        
+        if (cartItems.isEmpty()) {
+            throw new RuntimeException("Cart is empty");
+        }
+        
+        BigDecimal totalAmount = cartService.getCartTotal(user);
+        String orderNumber = "ORD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        
+        Order.OrderStatus initialStatus = requiresPrescription ? 
+            Order.OrderStatus.PRESCRIPTION_VERIFICATION : Order.OrderStatus.PENDING;
+        
+        Order order = Order.builder()
+                .orderNumber(orderNumber)
+                .user(user)
+                .totalAmount(totalAmount)
+                .status(initialStatus)
+                .prescriptionRequired(requiresPrescription)
+                .shippingAddress(user.getAddress())
+                .shippingCity(user.getCity())
+                .shippingState(user.getState())
+                .shippingPincode(user.getPincode())
+                .contactPhone(user.getPhone())
+                .paymentMethod(paymentMethod)
+                .paymentStatus("PENDING")
+                .build();
+        
+        for (Cart cartItem : cartItems) {
+            OrderItem orderItem = OrderItem.builder()
+                    .medicine(cartItem.getMedicine())
+                    .quantity(cartItem.getQuantity())
+                    .price(cartItem.getPrice())
+                    .subtotal(cartItem.getSubtotal())
+                    .build();
+            
+            order.addOrderItem(orderItem);
+            medicineService.updateStock(cartItem.getMedicine().getId(), cartItem.getQuantity());
+        }
+        
+        Order savedOrder = orderRepository.save(order);
+        
+        // Generate invoice immediately for online payments (not for COD)
+        if (!"COD".equalsIgnoreCase(paymentMethod) && !"Cash on Delivery".equalsIgnoreCase(paymentMethod)) {
+            savedOrder.setPaymentStatus("PAID");
+            savedOrder.setPaymentCompletedAt(LocalDateTime.now());
+            orderRepository.save(savedOrder);
+            invoiceService.generateInvoice(savedOrder, paymentMethod);
+        }
+        
+        cartService.clearCart(user);
+        return savedOrder;
+    }
+    
+    @Transactional
+    public void completePayment(Long orderId) {
+        Order order = findById(orderId);
+        order.setPaymentStatus("PAID");
+        order.setPaymentCompletedAt(LocalDateTime.now());
+        
+        Order savedOrder = orderRepository.save(order);
+        
+        // Generate invoice after payment completion for COD when delivered
+        if ("COD".equalsIgnoreCase(order.getPaymentMethod()) || 
+            "Cash on Delivery".equalsIgnoreCase(order.getPaymentMethod())) {
+            if (order.getStatus() == Order.OrderStatus.DELIVERED) {
+                invoiceService.generateInvoice(savedOrder, order.getPaymentMethod());
+            }
+        }
+    }
+    
+    public boolean checkPrescriptionRequired(User user) {
+        List<Cart> cartItems = cartService.getCartItems(user);
+        return cartItems.stream()
+                .anyMatch(cart -> cart.getMedicine().getPrescriptionRequired());
     }
 }
