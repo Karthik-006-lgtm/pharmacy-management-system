@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head}"></head>
+<body>
+    <nav th:replace="~{fragments/header :: navbar}"></nav>
+    
+    <div class="container my-5">
+        <h2 class="mb-4">Manage Orders</h2>
+        
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+        
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Order #</th>
+                                <th>Customer</th>
+                                <th>Order Date</th>
+                                <th>Total Amount</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="order : ${orders.content}">
+                                <td th:text="${order.orderNumber}">ORD-123</td>
+                                <td th:text="${order.user.fullName}">Customer</td>
+                                <td th:text="${#temporals.format(order.orderDate, 'dd MMM yyyy HH:mm')}">Date</td>
+                                <td>₹<span th:text="${#numbers.formatDecimal(order.totalAmount, 1, 2)}">0.00</span></td>
+                                <td>
+                                    <span class="badge order-status"
+                                          th:classappend="${order.status.name() == 'DELIVERED' ? 'bg-success' : 
+                                                           (order.status.name() == 'CANCELLED' ? 'bg-danger' : 
+                                                           (order.status.name() == 'SHIPPED' ? 'bg-info' : 'bg-warning text-dark'))}"
+                                          th:text="${#strings.replace(order.status.name(), '_', ' ')}">
+                                        Status
+                                    </span>
+                                </td>
+                                <td>
+                                    <a th:href="@{/admin/orders/view/{id}(id=${order.id})}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <nav th:if="${totalPages > 1}">
+            <ul class="pagination justify-content-center mt-4">
+                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                    <a class="page-link" th:href="@{/admin/orders(page=${currentPage - 1})}">Previous</a>
+                </li>
+                <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                    th:classappend="${i == currentPage} ? 'active'">
+                    <a class="page-link" th:href="@{/admin/orders(page=${i})}" th:text="${i + 1}">1</a>
+                </li>
+                <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                    <a class="page-link" th:href="@{/admin/orders(page=${currentPage + 1})}">Next</a>
+                </li>
+            </ul>
+        </nav>
+        
+        <div class="mt-3">
+            <a th:href="@{/admin}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+    
+    <footer th:replace="~{fragments/header :: footer}"></footer>
+    <div th:replace="~{fragments/header :: scripts}"></div>
+</body>
+</html>

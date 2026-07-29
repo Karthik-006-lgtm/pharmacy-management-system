@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head}"></head>
+<body>
+    <nav th:replace="~{fragments/header :: navbar}"></nav>
+    
+    <div class="container my-5">
+        <h2 class="mb-4">Browse Medicines</h2>
+        
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <form th:action="@{/medicines}" method="get" class="d-flex">
+                    <input type="text" name="search" class="form-control" 
+                           th:value="${search}" placeholder="Search medicines...">
+                    <button type="submit" class="btn btn-primary ms-2">
+                        <i class="bi bi-search"></i> Search
+                    </button>
+                </form>
+            </div>
+            <div class="col-md-6">
+                <form th:action="@{/medicines}" method="get" class="d-flex">
+                    <select name="category" class="form-select me-2">
+                        <option value="">All Categories</option>
+                        <option th:each="cat : ${categories}" 
+                                th:value="${cat.id}" 
+                                th:text="${cat.name}"
+                                th:selected="${cat.id == selectedCategory}">
+                            Category
+                        </option>
+                    </select>
+                    <button type="submit" class="btn btn-primary">Filter</button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-3 mb-4" th:each="medicine : ${medicines.content}">
+                <div class="card medicine-card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title" th:text="${medicine.name}">Medicine</h5>
+                        <p class="text-muted mb-1"><small th:text="${medicine.brand}">Brand</small></p>
+                        <p class="text-muted mb-2"><small th:text="${medicine.category.name}">Category</small></p>
+                        <h4 class="text-primary mb-3">₹<span th:text="${#numbers.formatDecimal(medicine.price, 1, 2)}">0.00</span></h4>
+                        
+                        <div class="mb-3">
+                            <span class="badge bg-warning text-dark" th:if="${medicine.prescriptionRequired}">
+                                Prescription Required
+                            </span>
+                            <span class="badge" 
+                                  th:classappend="${medicine.stock > 10 ? 'bg-success' : 'bg-danger'}">
+                                Stock: <span th:text="${medicine.stock}">0</span>
+                            </span>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <a th:href="@{/medicines/details(id=${medicine.id})}" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-eye"></i> View Details
+                            </a>
+                            <div class="btn-group" role="group" th:if="${medicine.stock > 0}">
+                                <form th:action="@{/cart/add}" method="post" style="flex: 1;">
+                                    <input type="hidden" name="medicineId" th:value="${medicine.id}">
+                                    <button type="submit" class="btn btn-primary btn-sm w-100">
+                                        <i class="bi bi-cart-plus"></i> Cart
+                                    </button>
+                                </form>
+                                <form th:action="@{/wishlist/add}" method="post" style="flex: 1;" class="ms-1">
+                                    <input type="hidden" name="medicineId" th:value="${medicine.id}">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                                        <i class="bi bi-heart"></i>
+                                    </button>
+                                </form>
+                            </div>
+                            <button class="btn btn-secondary btn-sm" disabled th:if="${medicine.stock == 0}">
+                                Out of Stock
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <nav th:if="${totalPages > 1}">
+            <ul class="pagination justify-content-center">
+                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                    <a class="page-link" th:href="@{/medicines(page=${currentPage - 1}, search=${search}, category=${selectedCategory})}">
+                        Previous
+                    </a>
+                </li>
+                <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                    th:classappend="${i == currentPage} ? 'active'">
+                    <a class="page-link" 
+                       th:href="@{/medicines(page=${i}, search=${search}, category=${selectedCategory})}" 
+                       th:text="${i + 1}">1</a>
+                </li>
+                <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                    <a class="page-link" th:href="@{/medicines(page=${currentPage + 1}, search=${search}, category=${selectedCategory})}">
+                        Next
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+    
+    <footer th:replace="~{fragments/header :: footer}"></footer>
+    <div th:replace="~{fragments/header :: scripts}"></div>
+</body>
+</html>

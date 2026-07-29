@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head}"></head>
+<body>
+    <nav th:replace="~{fragments/header :: navbar}"></nav>
+    
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body p-5">
+                        <div class="text-center mb-4">
+                            <i class="bi bi-capsule-pill" style="font-size: 10rem; color: var(--primary-color);"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h2 th:text="${medicine.name}">Medicine Name</h2>
+                        <p class="text-muted mb-3" th:text="${medicine.brand}">Brand</p>
+                        
+                        <div class="mb-3">
+                            <span class="badge bg-info text-dark" th:text="${medicine.category.name}">Category</span>
+                            <span class="badge bg-warning text-dark" th:if="${medicine.prescriptionRequired}">
+                                <i class="bi bi-file-medical"></i> Prescription Required
+                            </span>
+                        </div>
+                        
+                        <h3 class="text-primary mb-4">₹<span th:text="${#numbers.formatDecimal(medicine.price, 1, 2)}">0.00</span></h3>
+                        
+                        <table class="table table-borderless">
+                            <tr>
+                                <th width="40%">Manufacturer:</th>
+                                <td th:text="${medicine.manufacturer}">-</td>
+                            </tr>
+                            <tr>
+                                <th>Stock:</th>
+                                <td>
+                                    <span class="badge" 
+                                          th:classappend="${medicine.stock > 10 ? 'bg-success' : (medicine.stock > 0 ? 'bg-warning text-dark' : 'bg-danger')}"
+                                          th:text="${medicine.stock > 0 ? medicine.stock + ' units available' : 'Out of Stock'}">
+                                        In Stock
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Manufacture Date:</th>
+                                <td th:text="${#temporals.format(medicine.manufactureDate, 'dd MMM yyyy')}">01 Jan 2023</td>
+                            </tr>
+                            <tr>
+                                <th>Expiry Date:</th>
+                                <td th:text="${#temporals.format(medicine.expiryDate, 'dd MMM yyyy')}">01 Jan 2025</td>
+                            </tr>
+                        </table>
+                        
+                        <div class="mb-4">
+                            <h5>Description</h5>
+                            <p th:text="${medicine.description ?: 'No description available'}">Description</p>
+                        </div>
+                        
+                        <form th:action="@{/cart/add}" method="post" th:if="${medicine.stock > 0}">
+                            <input type="hidden" name="medicineId" th:value="${medicine.id}">
+                            <div class="input-group mb-3">
+                                <span class="input-group-text">Quantity</span>
+                                <input type="number" name="quantity" class="form-control" value="1" min="1" 
+                                       th:max="${medicine.stock}">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-cart-plus"></i> Add to Cart
+                                </button>
+                            </div>
+                        </form>
+                        
+                        <form th:action="@{/wishlist/add}" method="post" class="mb-3">
+                            <input type="hidden" name="medicineId" th:value="${medicine.id}">
+                            <button type="submit" class="btn btn-outline-danger w-100">
+                                <i class="bi bi-heart"></i> Add to Wishlist
+                            </button>
+                        </form>
+                        
+                        <div class="alert alert-warning" th:if="${medicine.prescriptionRequired}">
+                            <i class="bi bi-exclamation-triangle"></i> 
+                            This medicine requires a valid prescription. Please upload your prescription during checkout.
+                        </div>
+                        
+                        <a th:href="@{/medicines}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Back to Medicines
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer th:replace="~{fragments/header :: footer}"></footer>
+    <div th:replace="~{fragments/header :: scripts}"></div>
+</body>
+</html>

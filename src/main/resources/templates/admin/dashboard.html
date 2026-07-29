@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head}"></head>
+<body>
+    <nav th:replace="~{fragments/header :: navbar}"></nav>
+    
+    <div class="container my-5">
+        <h2 class="mb-4">Admin Dashboard</h2>
+        
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="card dashboard-stat-card">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-2">Total Medicines</h6>
+                        <h2 class="mb-0" th:text="${totalMedicines}">0</h2>
+                        <small class="text-muted">Active medicines</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card dashboard-stat-card">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-2">Total Orders</h6>
+                        <h2 class="mb-0" th:text="${totalOrders}">0</h2>
+                        <small class="text-muted">All time orders</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card dashboard-stat-card">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-2">Total Customers</h6>
+                        <h2 class="mb-0" th:text="${totalCustomers}">0</h2>
+                        <small class="text-muted">Registered users</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card dashboard-stat-card">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-2">Total Revenue</h6>
+                        <h2 class="mb-0">₹<span th:text="${#numbers.formatDecimal(totalRevenue, 1, 2)}">0.00</span></h2>
+                        <small class="text-muted">All time revenue</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="card border-primary">
+                    <div class="card-body">
+                        <h6 class="text-primary mb-2">Today's Orders</h6>
+                        <h3 class="mb-0" th:text="${todayOrders}">0</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card border-warning">
+                    <div class="card-body">
+                        <h6 class="text-warning mb-2">Pending Orders</h6>
+                        <h3 class="mb-0" th:text="${pendingOrders}">0</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card border-success">
+                    <div class="card-body">
+                        <h6 class="text-success mb-2">Delivered</h6>
+                        <h3 class="mb-0" th:text="${deliveredOrders}">0</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card border-danger">
+                    <div class="card-body">
+                        <h6 class="text-danger mb-2">Low Stock Items</h6>
+                        <h3 class="mb-0" th:text="${#lists.size(lowStockMedicines)}">0</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Low Stock Medicines</h5>
+                        <div th:if="${#lists.isEmpty(lowStockMedicines)}" class="text-muted">
+                            No low stock items
+                        </div>
+                        <div class="table-responsive" th:if="${!#lists.isEmpty(lowStockMedicines)}">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Medicine</th>
+                                        <th>Stock</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="medicine : ${lowStockMedicines}">
+                                        <td th:text="${medicine.name}">Medicine</td>
+                                        <td>
+                                            <span class="badge bg-danger" th:text="${medicine.stock}">0</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Expiring Soon (3 months)</h5>
+                        <div th:if="${#lists.isEmpty(expiringMedicines)}" class="text-muted">
+                            No expiring medicines
+                        </div>
+                        <div class="table-responsive" th:if="${!#lists.isEmpty(expiringMedicines)}">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Medicine</th>
+                                        <th>Expiry Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="medicine : ${expiringMedicines}">
+                                        <td th:text="${medicine.name}">Medicine</td>
+                                        <td>
+                                            <span class="badge bg-warning text-dark" 
+                                                  th:text="${#temporals.format(medicine.expiryDate, 'dd MMM yyyy')}">
+                                                Date
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Recent Orders</h5>
+                        <div th:if="${#lists.isEmpty(recentOrders)}" class="text-muted">
+                            No orders yet
+                        </div>
+                        <div class="table-responsive" th:if="${!#lists.isEmpty(recentOrders)}">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Order #</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="order : ${recentOrders}">
+                                        <td>
+                                            <a th:href="@{/admin/orders/view/{id}(id=${order.id})}" 
+                                               th:text="${order.orderNumber}">
+                                                Order
+                                            </a>
+                                        </td>
+                                        <td>₹<span th:text="${#numbers.formatDecimal(order.totalAmount, 1, 2)}">0.00</span></td>
+                                        <td>
+                                            <span class="badge" 
+                                                  th:classappend="${order.status.name() == 'DELIVERED' ? 'bg-success' : 'bg-warning text-dark'}"
+                                                  th:text="${#strings.replace(order.status.name(), '_', ' ')}">
+                                                Status
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Pending Prescriptions</h5>
+                        <div th:if="${#lists.isEmpty(pendingPrescriptions)}" class="text-muted">
+                            No pending prescriptions
+                        </div>
+                        <div th:if="${!#lists.isEmpty(pendingPrescriptions)}">
+                            <p class="mb-2" th:each="prescription : ${pendingPrescriptions}">
+                                <a th:href="@{/admin/prescriptions/view/{id}(id=${prescription.id})}" 
+                                   class="btn btn-sm btn-outline-primary w-100 text-start">
+                                    Order #<span th:text="${prescription.order.orderNumber}">ORD-123</span>
+                                    <i class="bi bi-arrow-right float-end"></i>
+                                </a>
+                            </p>
+                        </div>
+                        <a th:href="@{/admin/prescriptions}" class="btn btn-primary btn-sm w-100 mt-3">
+                            View All Prescriptions
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">Quick Actions</h5>
+                        <div class="row mt-4">
+                            <div class="col-md-3 mb-2">
+                                <a th:href="@{/admin/medicines}" class="btn btn-outline-primary w-100">
+                                    <i class="bi bi-capsule"></i> Manage Medicines
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <a th:href="@{/admin/categories}" class="btn btn-outline-primary w-100">
+                                    <i class="bi bi-tags"></i> Manage Categories
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <a th:href="@{/admin/orders}" class="btn btn-outline-primary w-100">
+                                    <i class="bi bi-box-seam"></i> Manage Orders
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <a th:href="@{/admin/customers}" class="btn btn-outline-primary w-100">
+                                    <i class="bi bi-people"></i> View Customers
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <a th:href="@{/admin/audit}" class="btn btn-outline-primary w-100">
+                                    <i class="bi bi-file-earmark-text"></i> Audit Logs
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer th:replace="~{fragments/header :: footer}"></footer>
+    <div th:replace="~{fragments/header :: scripts}"></div>
+</body>
+</html>

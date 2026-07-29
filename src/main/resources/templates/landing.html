@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head}"></head>
+<body>
+    <nav th:replace="~{fragments/header :: navbar}"></nav>
+    
+    <div class="landing-hero">
+        <div class="container">
+            <h1>Welcome to PharmaCare</h1>
+            <p>Your trusted online pharmacy for quality medicines</p>
+            <div class="mt-4">
+                <a th:href="@{/login}" class="btn btn-light btn-lg me-2">Login</a>
+                <a th:href="@{/register}" class="btn btn-outline-light btn-lg">Get Started</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container my-5">
+        <div class="row text-center">
+            <div class="col-md-4 mb-4">
+                <div class="card p-4">
+                    <i class="bi bi-shield-check feature-icon"></i>
+                    <h4>Verified Medicines</h4>
+                    <p>All medicines are sourced from verified manufacturers</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card p-4">
+                    <i class="bi bi-truck feature-icon"></i>
+                    <h4>Fast Delivery</h4>
+                    <p>Quick and reliable delivery to your doorstep</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card p-4">
+                    <i class="bi bi-person-check feature-icon"></i>
+                    <h4>Expert Support</h4>
+                    <p>24/7 customer support for your queries</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer th:replace="~{fragments/header :: footer}"></footer>
+    <div th:replace="~{fragments/header :: scripts}"></div>
+</body>
+</html>

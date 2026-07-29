@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head}"></head>
+<body>
+    <nav th:replace="~{fragments/header :: navbar}"></nav>
+    
+    <div class="container my-5 text-center">
+        <i class="bi bi-x-octagon" style="font-size: 8rem; color: #dc2626;"></i>
+        <h1 class="mt-4">500 - Internal Server Error</h1>
+        <p class="lead" th:text="${error ?: 'Something went wrong. Please try again later.'}">
+            Something went wrong. Please try again later.
+        </p>
+        <a th:href="@{/home}" class="btn btn-primary">Go to Home</a>
+    </div>
+    
+    <footer th:replace="~{fragments/header :: footer}"></footer>
+    <div th:replace="~{fragments/header :: scripts}"></div>
+</body>
+</html>

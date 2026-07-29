@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head}"></head>
+<body>
+    <nav th:replace="~{fragments/header :: navbar}"></nav>
+    
+    <div class="container my-5">
+        <h2 class="mb-4" th:text="${category.id != null ? 'Edit Category' : 'Add Category'}">Add Category</h2>
+        
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <form th:action="${category.id != null ? '/admin/categories/edit/' + category.id : '/admin/categories/add'}" 
+                              th:object="${category}" method="post">
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Category Name</label>
+                                <input type="text" th:field="*{name}" class="form-control"
+                                       th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'">
+                                <div class="invalid-feedback" th:errors="*{name}"></div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Description</label>
+                                <textarea th:field="*{description}" class="form-control" rows="3"
+                                          th:classappend="${#fields.hasErrors('description')} ? 'is-invalid'"></textarea>
+                                <div class="invalid-feedback" th:errors="*{description}"></div>
+                            </div>
+                            
+                            <div class="mb-3 form-check" th:if="${category.id != null}">
+                                <input type="checkbox" th:field="*{active}" class="form-check-input" id="activeCheck">
+                                <label class="form-check-label" for="activeCheck">
+                                    Active
+                                </label>
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-check-circle"></i> Save Category
+                                </button>
+                                <a th:href="@{/admin/categories}" class="btn btn-outline-secondary">Cancel</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer th:replace="~{fragments/header :: footer}"></footer>
+    <div th:replace="~{fragments/header :: scripts}"></div>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head}"></head>
+<body>
+    <nav th:replace="~{fragments/header :: navbar}"></nav>
+    
+    <div class="container my-5">
+        <h2 class="mb-4">Checkout</h2>
+        
+        <div class="row">
+            <div class="col-md-7">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h4 class="card-title mb-4">Shipping Address</h4>
+                        <p><strong th:text="${user.fullName}">Full Name</strong></p>
+                        <p th:text="${user.address}">Address</p>
+                        <p th:text="${user.city + ', ' + user.state + ' - ' + user.pincode}">City, State - Pincode</p>
+                        <p>Phone: <span th:text="${user.phone}">Phone</span></p>
+                        <a th:href="@{/profile/edit}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-pencil"></i> Edit Address
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title mb-4">Payment Method</h4>
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> Cash on Delivery (COD) only
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-5">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title mb-4">Review Order</h4>
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            Please ensure all information is correct before placing your order.
+                        </div>
+                        
+                        <form th:action="@{/orders/place}" method="post">
+                            <button type="submit" class="btn btn-primary w-100 btn-lg">
+                                <i class="bi bi-check-circle"></i> Place Order
+                            </button>
+                        </form>
+                        
+                        <a th:href="@{/cart}" class="btn btn-outline-secondary w-100 mt-2">
+                            <i class="bi bi-arrow-left"></i> Back to Cart
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer th:replace="~{fragments/header :: footer}"></footer>
+    <div th:replace="~{fragments/header :: scripts}"></div>
+</body>
+</html>

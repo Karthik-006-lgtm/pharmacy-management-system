@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head}"></head>
+<body>
+    <nav th:replace="~{fragments/header :: navbar}"></nav>
+    
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-md-5">
+                <div class="card">
+                    <div class="card-body p-5">
+                        <h2 class="text-center mb-4">Login</h2>
+                        
+                        <div th:if="${param.error}" class="alert alert-danger">
+                            Invalid email or password
+                        </div>
+                        <div th:if="${param.logout}" class="alert alert-success">
+                            You have been logged out successfully
+                        </div>
+                        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+                        
+                        <form th:action="@{/login}" method="post">
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" name="username" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Password</label>
+                                <input type="password" name="password" class="form-control" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Login</button>
+                        </form>
+                        
+                        <div class="text-center mt-3">
+                            <p>Don't have an account? <a th:href="@{/register}">Register here</a></p>
+                        </div>
+                        
+                        <div class="mt-4 p-3 bg-light rounded">
+                            <small class="text-muted">
+                                <strong>Demo Accounts:</strong><br>
+                                Admin: admin@pharmacy.com / admin123<br>
+                                Customer: john@example.com / john123
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer th:replace="~{fragments/header :: footer}"></footer>
+    <div th:replace="~{fragments/header :: scripts}"></div>
+</body>
+</html>

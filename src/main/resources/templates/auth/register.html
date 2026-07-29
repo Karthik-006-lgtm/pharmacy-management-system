@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head}"></head>
+<body>
+    <nav th:replace="~{fragments/header :: navbar}"></nav>
+    
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body p-5">
+                        <h2 class="text-center mb-4">Register</h2>
+                        
+                        <form th:action="@{/register}" th:object="${user}" method="post">
+                            <div class="mb-3">
+                                <label class="form-label">Full Name</label>
+                                <input type="text" th:field="*{fullName}" class="form-control" 
+                                       th:classappend="${#fields.hasErrors('fullName')} ? 'is-invalid'">
+                                <div class="invalid-feedback" th:errors="*{fullName}"></div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" th:field="*{email}" class="form-control"
+                                       th:classappend="${#fields.hasErrors('email')} ? 'is-invalid'">
+                                <div class="invalid-feedback" th:errors="*{email}"></div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Password</label>
+                                <input type="password" th:field="*{password}" class="form-control"
+                                       th:classappend="${#fields.hasErrors('password')} ? 'is-invalid'">
+                                <div class="invalid-feedback" th:errors="*{password}"></div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Phone</label>
+                                <input type="text" th:field="*{phone}" class="form-control"
+                                       th:classappend="${#fields.hasErrors('phone')} ? 'is-invalid'">
+                                <div class="invalid-feedback" th:errors="*{phone}"></div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Address</label>
+                                <textarea th:field="*{address}" class="form-control" rows="2"
+                                          th:classappend="${#fields.hasErrors('address')} ? 'is-invalid'"></textarea>
+                                <div class="invalid-feedback" th:errors="*{address}"></div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">City</label>
+                                    <input type="text" th:field="*{city}" class="form-control"
+                                           th:classappend="${#fields.hasErrors('city')} ? 'is-invalid'">
+                                    <div class="invalid-feedback" th:errors="*{city}"></div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">State</label>
+                                    <input type="text" th:field="*{state}" class="form-control"
+                                           th:classappend="${#fields.hasErrors('state')} ? 'is-invalid'">
+                                    <div class="invalid-feedback" th:errors="*{state}"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Pincode</label>
+                                <input type="text" th:field="*{pincode}" class="form-control"
+                                       th:classappend="${#fields.hasErrors('pincode')} ? 'is-invalid'">
+                                <div class="invalid-feedback" th:errors="*{pincode}"></div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary w-100">Register</button>
+                        </form>
+                        
+                        <div class="text-center mt-3">
+                            <p>Already have an account? <a th:href="@{/login}">Login here</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer th:replace="~{fragments/header :: footer}"></footer>
+    <div th:replace="~{fragments/header :: scripts}"></div>
+</body>
+</html>

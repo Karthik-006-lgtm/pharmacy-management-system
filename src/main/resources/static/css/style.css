@@ -1,0 +1,141 @@
+:root {
+    --primary-color: #2563EB;
+    --secondary-color: #10B981;
+    --danger-color: #EF4444;
+    --warning-color: #F59E0B;
+    --light-bg: #F9FAFB;
+    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--light-bg);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.main-content {
+    flex: 1;
+}
+
+.navbar-brand {
+    font-weight: 600;
+    font-size: 1.5rem;
+}
+
+.card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: var(--card-shadow);
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.btn {
+    border-radius: 8px;
+    padding: 0.5rem 1.5rem;
+    font-weight: 500;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border: none;
+}
+
+.btn-success {
+    background-color: var(--secondary-color);
+    border: none;
+}
+
+.medicine-card {
+    height: 100%;
+}
+
+.medicine-card img {
+    height: 200px;
+    object-fit: cover;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+.badge-prescription {
+    background-color: var(--warning-color);
+}
+
+.badge-stock {
+    background-color: var(--secondary-color);
+}
+
+.badge-low-stock {
+    background-color: var(--danger-color);
+}
+
+.landing-hero {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #1E40AF 100%);
+    color: white;
+    padding: 5rem 0;
+    text-align: center;
+}
+
+.landing-hero h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.landing-hero p {
+    font-size: 1.25rem;
+    margin-bottom: 2rem;
+}
+
+.feature-icon {
+    font-size: 3rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+.dashboard-stat-card {
+    border-left: 4px solid var(--primary-color);
+}
+
+.table-actions .btn {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+}
+
+.order-status {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+}
+
+.alert {
+    border-radius: 8px;
+    border: none;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
+}
+
+.search-box {
+    border-radius: 50px;
+    padding: 0.75rem 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .landing-hero h1 {
+        font-size: 2rem;
+    }
+    
+    .landing-hero p {
+        font-size: 1rem;
+    }
+}

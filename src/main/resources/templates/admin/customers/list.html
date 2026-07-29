@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head}"></head>
+<body>
+    <nav th:replace="~{fragments/header :: navbar}"></nav>
+    
+    <div class="container my-5">
+        <h2 class="mb-4">Manage Customers</h2>
+        
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>City</th>
+                                <th>Registered On</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="customer : ${customers}">
+                                <td th:text="${customer.id}">1</td>
+                                <td th:text="${customer.fullName}">Name</td>
+                                <td th:text="${customer.email}">Email</td>
+                                <td th:text="${customer.phone}">Phone</td>
+                                <td th:text="${customer.city}">City</td>
+                                <td th:text="${#temporals.format(customer.createdAt, 'dd MMM yyyy')}">Date</td>
+                                <td>
+                                    <a th:href="@{/admin/customers/view/{id}(id=${customer.id})}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-3">
+            <a th:href="@{/admin}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+    
+    <footer th:replace="~{fragments/header :: footer}"></footer>
+    <div th:replace="~{fragments/header :: scripts}"></div>
+</body>
+</html>
