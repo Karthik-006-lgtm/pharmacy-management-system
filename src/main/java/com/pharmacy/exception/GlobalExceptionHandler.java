@@ -29,6 +29,12 @@ public class GlobalExceptionHandler {
         return "redirect:/medicines";
     }
     
+    @ExceptionHandler(FileUploadException.class)
+    public String handleFileUpload(FileUploadException ex, RedirectAttributes redirectAttributes) {
+        redirectAttributes.addFlashAttribute("error", ex.getMessage());
+        return "redirect:/orders/checkout";
+    }
+    
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public String handleGenericException(Exception ex, Model model) {

@@ -42,6 +42,19 @@ public class User {
     @Column(length = 10)
     private String pincode;
     
+    @Column
+    private Double latitude;
+    
+    @Column
+    private Double longitude;
+    
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean isOnline = false;
+    
+    @Column
+    private LocalDateTime lastSeenAt;
+    
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
         name = "user_roles",

@@ -80,6 +80,31 @@ public class Order {
     @Column(length = 500)
     private String remarks;
     
+    @Column(length = 100)
+    private String paymentTransactionId;
+    
+    @Column
+    private Double deliveryLatitude;
+    
+    @Column
+    private Double deliveryLongitude;
+    
+    @Column
+    private Integer estimatedDeliveryMinutes;
+    
+    @Column
+    private LocalDateTime estimatedDeliveryTime;
+    
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean broadcastToPharmacists = false;
+    
+    @Column
+    private LocalDateTime broadcastAt;
+    
+    @Column
+    private LocalDateTime acceptedAt;
+    
     @PrePersist
     protected void onCreate() {
         orderDate = LocalDateTime.now();

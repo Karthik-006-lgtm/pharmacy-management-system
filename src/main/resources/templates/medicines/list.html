@@ -53,6 +53,9 @@
                         </div>
                         
                         <div class="d-grid gap-2">
+                            <a th:href="@{/medicines/{id}(id=${medicine.id})}" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-info-circle"></i> View Details
+                            </a>
                             <div class="btn-group" role="group" th:if="${medicine.stock > 0}">
                                 <form th:action="@{/cart/add}" method="post" style="flex: 1;">
                                     <input type="hidden" name="medicineId" th:value="${medicine.id}">

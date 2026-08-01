@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment - Online Pharmacy</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .payment-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .payment-method-card {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid #dee2e6;
+        }
+        .payment-method-card:hover {
+            border-color: #0d6efd;
+            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.15);
+            transform: translateY(-2px);
+        }
+        .payment-method-card.selected {
+            border-color: #0d6efd;
+            background-color: #e7f1ff;
+        }
+        .payment-method-icon {
+            font-size: 2.5rem;
+        }
+        .payment-interface {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+        .payment-interface.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .qr-code-box {
+            width: 250px;
+            height: 250px;
+            margin: 20px auto;
+            background: #f8f9fa;
+            border: 3px solid #dee2e6;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: #6c757d;
+        }
+        .card-input {
+            font-size: 1.1rem;
+            padding: 12px;
+            letter-spacing: 2px;
+        }
+        .processing-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        .processing-overlay.active {
+            display: flex;
+        }
+        .processing-content {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            text-align: center;
+            max-width: 400px;
+        }
+        .spinner-border-lg {
+            width: 4rem;
+            height: 4rem;
+            border-width: 0.4rem;
+        }
+        .success-icon {
+            font-size: 5rem;
+            color: #198754;
+            animation: scaleIn 0.5s ease;
+        }
+        @keyframes scaleIn {
+            from { transform: scale(0); }
+            to { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div th:replace="fragments/navbar :: navbar"></div>
+    
+    <div class="container payment-container mt-5 mb-5">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">
+                            <i class="bi bi-credit-card"></i> Select Payment Method
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3" id="paymentMethods">
+                            <div class="col-md-4">
+                                <div class="payment-method-card card text-center p-3" data-method="GOOGLE_PAY">
+                                    <div class="payment-method-icon text-primary">
+                                        <i class="bi bi-google"></i>
+                                    </div>
+                                    <h6 class="mt-2 mb-0">Google Pay</h6>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="payment-method-card card text-center p-3" data-method="PHONEPE">
+                                    <div class="payment-method-icon text-info">
+                                        <i class="bi bi-phone"></i>
+                                    </div>
+                                    <h6 class="mt-2 mb-0">PhonePe</h6>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="payment-method-card card text-center p-3" data-method="PAYTM">
+                                    <div class="payment-method-icon text-primary">
+                                        <i class="bi bi-wallet2"></i>
+                                    </div>
+                                    <h6 class="mt-2 mb-0">Paytm</h6>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="payment-method-card card text-center p-3" data-method="CREDIT_CARD">
+                                    <div class="payment-method-icon text-warning">
+                                        <i class="bi bi-credit-card-2-front"></i>
+                                    </div>
+                                    <h6 class="mt-2 mb-0">Credit Card</h6>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="payment-method-card card text-center p-3" data-method="DEBIT_CARD">
+                                    <div class="payment-method-icon text-success">
+                                        <i class="bi bi-credit-card"></i>
+                                    </div>
+                                    <h6 class="mt-2 mb-0">Debit Card</h6>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="payment-method-card card text-center p-3" data-method="NET_BANKING">
+                                    <div class="payment-method-icon text-danger">
+                                        <i class="bi bi-bank"></i>
+                                    </div>
+                                    <h6 class="mt-2 mb-0">Net Banking</h6>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="payment-method-card card text-center p-3" data-method="COD">
+                                    <div class="payment-method-icon text-secondary">
+                                        <i class="bi bi-cash-coin"></i>
+                                    </div>
+                                    <h6 class="mt-2 mb-0">Cash on Delivery</h6>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- UPI Payment Interface -->
+                        <div id="upiInterface" class="payment-interface mt-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="text-center mb-4">
+                                        <span id="upiProviderName"></span> Payment
+                                    </h5>
+                                    <div class="qr-code-box">
+                                        <div class="text-center">
+                                            <i class="bi bi-qr-code" style="font-size: 8rem;"></i>
+                                            <p class="mt-2">Scan QR Code</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-center mt-4">
+                                        <p class="text-muted mb-2">Merchant: <strong>Online Pharmacy</strong></p>
+                                        <h4 class="text-primary mb-3">₹<span th:text="${order.totalAmount}"></span></h4>
+                                        <div class="alert alert-info">
+                                            <i class="bi bi-info-circle"></i> 
+                                            Open <span id="upiAppName"></span> app and scan the QR code
+                                        </div>
+                                        <button type="button" class="btn btn-success btn-lg" onclick="confirmUpiPayment()">
+                                            <i class="bi bi-check-circle"></i> I've Made the Payment
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Card Payment Interface -->
+                        <div id="cardInterface" class="payment-interface mt-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="text-center mb-4">
+                                        <i class="bi bi-credit-card"></i> <span id="cardTypeName"></span> Details
+                                    </h5>
+                                    <form id="cardForm">
+                                        <div class="mb-3">
+                                            <label class="form-label">Card Number</label>
+                                            <input type="text" class="form-control card-input" id="cardNumber" 
+                                                   placeholder="1234 5678 9012 3456" maxlength="19" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Card Holder Name</label>
+                                            <input type="text" class="form-control" id="cardHolder" 
+                                                   placeholder="Enter name as on card" required>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Expiry Date</label>
+                                                <input type="text" class="form-control" id="expiryDate" 
+                                                       placeholder="MM/YY" maxlength="5" required>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">CVV</label>
+                                                <input type="password" class="form-control" id="cvv" 
+                                                       placeholder="123" maxlength="3" required>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="btn btn-primary btn-lg w-100" onclick="processCardPayment()">
+                                            <i class="bi bi-lock-fill"></i> Pay ₹<span th:text="${order.totalAmount}"></span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Net Banking Interface -->
+                        <div id="netBankingInterface" class="payment-interface mt-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="text-center mb-4">
+                                        <i class="bi bi-bank"></i> Net Banking
+                                    </h5>
+                                    <form id="bankingForm">
+                                        <div class="mb-3">
+                                            <label class="form-label">Select Your Bank</label>
+                                            <select class="form-select" id="bankName" required>
+                                                <option value="">Choose Bank</option>
+                                                <option value="SBI">State Bank of India</option>
+                                                <option value="HDFC">HDFC Bank</option>
+                                                <option value="ICICI">ICICI Bank</option>
+                                                <option value="AXIS">Axis Bank</option>
+                                                <option value="KOTAK">Kotak Mahindra Bank</option>
+                                                <option value="PNB">Punjab National Bank</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">User ID</label>
+                                            <input type="text" class="form-control" id="bankUserId" 
+                                                   placeholder="Enter your banking user ID" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Password</label>
+                                            <input type="password" class="form-control" id="bankPassword" 
+                                                   placeholder="Enter banking password" required>
+                                        </div>
+                                        <div class="alert alert-warning">
+                                            <i class="bi bi-shield-check"></i> This is a simulated payment for demonstration purposes
+                                        </div>
+                                        <button type="button" class="btn btn-danger btn-lg w-100" onclick="processNetBanking()">
+                                            <i class="bi bi-bank"></i> Proceed to Pay ₹<span th:text="${order.totalAmount}"></span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- COD Interface -->
+                        <div id="codInterface" class="payment-interface mt-4">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-cash-coin text-success" style="font-size: 5rem;"></i>
+                                    <h4 class="mt-3">Cash on Delivery</h4>
+                                    <p class="text-muted">Pay ₹<span th:text="${order.totalAmount}"></span> when your order is delivered</p>
+                                    <div class="alert alert-info">
+                                        <i class="bi bi-info-circle"></i> 
+                                        Invoice will be generated after successful delivery
+                                    </div>
+                                    <button type="button" class="btn btn-success btn-lg" onclick="confirmCOD()">
+                                        <i class="bi bi-check-circle"></i> Confirm Order
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card shadow-sm sticky-top" style="top: 20px;">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">Order Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-2">
+                            <strong>Order Number:</strong><br>
+                            <span class="text-primary" th:text="${order.orderNumber}"></span>
+                        </p>
+                        <hr>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Subtotal:</span>
+                            <strong>₹<span th:text="${order.totalAmount}"></span></strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Delivery:</span>
+                            <strong class="text-success">FREE</strong>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between mb-3">
+                            <strong>Total Amount:</strong>
+                            <h4 class="text-primary mb-0">₹<span th:text="${order.totalAmount}"></span></h4>
+                        </div>
+                        <div class="alert alert-info mb-0">
+                            <i class="bi bi-shield-check"></i> Secure Payment
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Processing Overlay -->
+    <div class="processing-overlay" id="processingOverlay">
+        <div class="processing-content">
+            <div id="loadingState">
+                <div class="spinner-border spinner-border-lg text-primary mb-3" role="status"></div>
+                <h5>Processing Payment...</h5>
+                <p class="text-muted mb-0">Please wait while we process your payment</p>
+            </div>
+            <div id="successState" style="display: none;">
+                <i class="bi bi-check-circle-fill success-icon"></i>
+                <h4 class="mt-3 text-success">Payment Successful!</h4>
+                <p class="text-muted">Redirecting to order confirmation...</p>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:inline="javascript">
+        const orderId = /*[[${order.id}]]*/ null;
+        const orderAmount = /*[[${order.totalAmount}]]*/ null;
+        let selectedMethod = null;
+        
+        document.querySelectorAll('.payment-method-card').forEach(card => {
+            card.addEventListener('click', function() {
+                document.querySelectorAll('.payment-method-card').forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedMethod = this.dataset.method;
+                showPaymentInterface(selectedMethod);
+            });
+        });
+        
+        function showPaymentInterface(method) {
+            document.querySelectorAll('.payment-interface').forEach(iface => iface.classList.remove('active'));
+            
+            if (method === 'GOOGLE_PAY' || method === 'PHONEPE' || method === 'PAYTM') {
+                document.getElementById('upiProviderName').textContent = method.replace('_', ' ');
+                document.getElementById('upiAppName').textContent = method.replace('_', ' ');
+                document.getElementById('upiInterface').classList.add('active');
+            } else if (method === 'CREDIT_CARD' || method === 'DEBIT_CARD') {
+                document.getElementById('cardTypeName').textContent = method.replace('_', ' ');
+                document.getElementById('cardInterface').classList.add('active');
+            } else if (method === 'NET_BANKING') {
+                document.getElementById('netBankingInterface').classList.add('active');
+            } else if (method === 'COD') {
+                document.getElementById('codInterface').classList.add('active');
+            }
+        }
+        
+        document.getElementById('cardNumber').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\s/g, '');
+            let formatted = value.match(/.{1,4}/g)?.join(' ') || value;
+            e.target.value = formatted;
+        });
+        
+        document.getElementById('expiryDate').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 2) {
+                value = value.slice(0, 2) + '/' + value.slice(2, 4);
+            }
+            e.target.value = value;
+        });
+        
+        function confirmUpiPayment() {
+            processPayment({ paymentMethod: selectedMethod });
+        }
+        
+        function processCardPayment() {
+            const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
+            const cardHolder = document.getElementById('cardHolder').value;
+            const expiryDate = document.getElementById('expiryDate').value;
+            const cvv = document.getElementById('cvv').value;
+            
+            if (!cardNumber || !cardHolder || !expiryDate || !cvv) {
+                alert('Please fill all card details');
+                return;
+            }
+            
+            processPayment({
+                paymentMethod: selectedMethod,
+                cardNumber: cardNumber,
+                cardHolderName: cardHolder,
+                expiryDate: expiryDate,
+                cvv: cvv
+            });
+        }
+        
+        function processNetBanking() {
+            const bankName = document.getElementById('bankName').value;
+            const userId = document.getElementById('bankUserId').value;
+            const password = document.getElementById('bankPassword').value;
+            
+            if (!bankName || !userId || !password) {
+                alert('Please fill all banking details');
+                return;
+            }
+            
+            processPayment({
+                paymentMethod: selectedMethod,
+                bankName: bankName
+            });
+        }
+        
+        function confirmCOD() {
+            window.location.href = '/orders/confirmation?orderId=' + orderId;
+        }
+        
+        function processPayment(paymentData) {
+            paymentData.orderId = orderId;
+            
+            document.getElementById('processingOverlay').classList.add('active');
+            document.getElementById('loadingState').style.display = 'block';
+            document.getElementById('successState').style.display = 'none';
+            
+            fetch('/api/payment/process', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(paymentData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    setTimeout(() => {
+                        document.getElementById('loadingState').style.display = 'none';
+                        document.getElementById('successState').style.display = 'block';
+                    }, 1500);
+                    
+                    setTimeout(() => {
+                        window.location.href = '/orders/confirmation?orderId=' + orderId;
+                    }, 3000);
+                } else {
+                    alert('Payment failed: ' + data.message);
+                    document.getElementById('processingOverlay').classList.remove('active');
+                }
+            })
+            .catch(error => {
+                alert('Payment error: ' + error.message);
+                document.getElementById('processingOverlay').classList.remove('active');
+            });
+        }
+    </script>
+</body>
+</html>

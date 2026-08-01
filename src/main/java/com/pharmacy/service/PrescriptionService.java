@@ -3,6 +3,7 @@ package com.pharmacy.service;
 import com.pharmacy.entity.Order;
 import com.pharmacy.entity.Prescription;
 import com.pharmacy.entity.User;
+import com.pharmacy.exception.FileUploadException;
 import com.pharmacy.exception.ResourceNotFoundException;
 import com.pharmacy.repository.PrescriptionRepository;
 import org.springframework.stereotype.Service;
@@ -35,9 +36,27 @@ public class PrescriptionService {
     
     @Transactional
     public Prescription uploadPrescription(User user, Order order, MultipartFile file, User pharmacist) throws IOException {
+        if (file == null || file.isEmpty()) {
+            throw new FileUploadException("Please select a file to upload");
+        }
+        
+        long maxFileSize = 10 * 1024 * 1024;
+        if (file.getSize() > maxFileSize) {
+            throw new FileUploadException("File size exceeds maximum limit of 10MB. Your file: " + 
+                    (file.getSize() / (1024 * 1024)) + "MB");
+        }
+        
         String originalFilename = file.getOriginalFilename();
-        String extension = originalFilename != null ? 
-            originalFilename.substring(originalFilename.lastIndexOf(".")) : ".pdf";
+        if (originalFilename == null || originalFilename.trim().isEmpty()) {
+            throw new FileUploadException("Invalid file name");
+        }
+        
+        String fileExtension = originalFilename.substring(originalFilename.lastIndexOf(".")).toLowerCase();
+        if (!fileExtension.matches("\\.(pdf|jpg|jpeg|png)$")) {
+            throw new FileUploadException("Invalid file type. Only PDF, JPG, JPEG, and PNG files are allowed");
+        }
+        
+        String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
         String filename = UUID.randomUUID().toString() + extension;
         
         Path filePath = Paths.get(uploadDir + filename);

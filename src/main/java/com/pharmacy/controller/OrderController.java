@@ -5,6 +5,8 @@ import com.pharmacy.entity.User;
 import com.pharmacy.service.OrderService;
 import com.pharmacy.service.PrescriptionService;
 import com.pharmacy.util.SecurityUtil;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -20,12 +22,18 @@ public class OrderController {
     private final OrderService orderService;
     private final PrescriptionService prescriptionService;
     private final SecurityUtil securityUtil;
+    private final com.pharmacy.service.DeliveryTrackingService deliveryTrackingService;
+    private final com.pharmacy.service.DeliveryDelayService deliveryDelayService;
     
     public OrderController(OrderService orderService, PrescriptionService prescriptionService,
-                           SecurityUtil securityUtil) {
+                           SecurityUtil securityUtil,
+                           com.pharmacy.service.DeliveryTrackingService deliveryTrackingService,
+                           com.pharmacy.service.DeliveryDelayService deliveryDelayService) {
         this.orderService = orderService;
         this.prescriptionService = prescriptionService;
         this.securityUtil = securityUtil;
+        this.deliveryTrackingService = deliveryTrackingService;
+        this.deliveryDelayService = deliveryDelayService;
     }
     
     @GetMapping("/checkout")
@@ -113,6 +121,35 @@ public class OrderController {
         model.addAttribute("order", order);
         model.addAttribute("prescription", prescriptionService.findByOrderId(order.getId()));
         return "orders/track";
+    }
+    
+    @GetMapping("/track/{orderId}")
+    public String trackOrderById(@PathVariable Long orderId, Model model,
+                                 @AuthenticationPrincipal UserDetails userDetails) {
+        Order order = orderService.getOrderById(orderId);
+        
+        try {
+            com.pharmacy.entity.DeliveryTracking tracking = 
+                    deliveryTrackingService.getTrackingByOrderId(orderId);
+            java.util.List<com.pharmacy.entity.DeliveryDelay> delays = 
+                    deliveryDelayService.getOrderDelays(orderId);
+            
+            model.addAttribute("order", order);
+            model.addAttribute("tracking", tracking);
+            model.addAttribute("delays", delays);
+            return "orders/delivery-tracking";
+        } catch (Exception e) {
+            model.addAttribute("order", order);
+            model.addAttribute("prescription", prescriptionService.findByOrderId(order.getId()));
+            return "orders/track";
+        }
+    }
+    
+    @GetMapping("/feedback")
+    public String feedbackForm(@RequestParam Long orderId, Model model) {
+        Order order = orderService.getOrderById(orderId);
+        model.addAttribute("order", order);
+        return "orders/feedback";
     }
     
     @PostMapping("/upload-prescription")

@@ -63,6 +63,21 @@ public class SecurityConfig {
                 .logoutSuccessUrl("/login?logout=true")
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
+                .addLogoutHandler((request, response, authentication) -> {
+                    if (authentication != null && authentication.getPrincipal() instanceof org.springframework.security.core.userdetails.UserDetails) {
+                        String email = ((org.springframework.security.core.userdetails.UserDetails) authentication.getPrincipal()).getUsername();
+                        com.pharmacy.repository.UserRepository userRepository = 
+                                request.getServletContext().getAttribute("userRepository") != null ?
+                                (com.pharmacy.repository.UserRepository) request.getServletContext().getAttribute("userRepository") : null;
+                        if (userRepository != null) {
+                            userRepository.findByEmail(email).ifPresent(user -> {
+                                user.setIsOnline(false);
+                                user.setLastSeenAt(java.time.LocalDateTime.now());
+                                userRepository.save(user);
+                            });
+                        }
+                    }
+                })
                 .permitAll()
             )
             .exceptionHandling(exception -> exception

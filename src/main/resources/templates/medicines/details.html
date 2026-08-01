@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head}"></head>
+<body>
+    <nav th:replace="~{fragments/header :: navbar}"></nav>
+    
+    <div class="container my-5">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/home">Home</a></li>
+                <li class="breadcrumb-item"><a href="/medicines">Medicines</a></li>
+                <li class="breadcrumb-item active" th:text="${medicine.name}">Medicine</li>
+            </ol>
+        </nav>
+        
+        <div class="row">
+            <div class="col-lg-5 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-body text-center p-5">
+                        <i class="bi bi-capsule-pill" style="font-size: 8rem; color: #0d6efd;"></i>
+                        <div class="mt-3" th:if="${medicine.prescriptionRequired}">
+                            <span class="badge bg-warning text-dark p-2">
+                                <i class="bi bi-file-medical"></i> Prescription Required
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-7">
+                <h2 th:text="${medicine.name}">Medicine Name</h2>
+                <p class="text-muted lead" th:text="${medicine.brand}">Brand Name</p>
+                
+                <div class="card shadow-sm mb-3">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <h3 class="text-primary mb-0">
+                                    ₹<span th:text="${#numbers.formatDecimal(medicine.price, 1, 2)}">0.00</span>
+                                </h3>
+                            </div>
+                            <div class="col-md-6">
+                                <span class="badge fs-6" 
+                                      th:classappend="${medicine.stock > 10 ? 'bg-success' : (medicine.stock > 0 ? 'bg-warning text-dark' : 'bg-danger')}">
+                                    <i class="bi bi-box"></i> Stock: <span th:text="${medicine.stock}">0</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="bi bi-info-circle"></i> Product Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-borderless mb-0">
+                            <tr>
+                                <th width="40%">Category:</th>
+                                <td><span class="badge bg-primary" th:text="${medicine.category.name}">Category</span></td>
+                            </tr>
+                            <tr>
+                                <th>Manufacturer:</th>
+                                <td th:text="${medicine.manufacturer} ?: 'N/A'">Manufacturer</td>
+                            </tr>
+                            <tr th:if="${medicine.batchNumber}">
+                                <th>Batch Number:</th>
+                                <td th:text="${medicine.batchNumber}">Batch</td>
+                            </tr>
+                            <tr>
+                                <th>Manufacture Date:</th>
+                                <td th:text="${#temporals.format(medicine.manufactureDate, 'dd MMM yyyy')}">Date</td>
+                            </tr>
+                            <tr>
+                                <th>Expiry Date:</th>
+                                <td>
+                                    <span th:text="${#temporals.format(medicine.expiryDate, 'dd MMM yyyy')}">Date</span>
+                                    <span class="badge bg-danger ms-2" th:if="${medicine.expired}">Expired</span>
+                                    <span class="badge bg-warning text-dark ms-2" 
+                                          th:if="${!medicine.expired && medicine.expiryDate.isBefore(T(java.time.LocalDate).now().plusMonths(6))}">
+                                        Expiring Soon
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr th:if="${medicine.taxPercentage != null && medicine.taxPercentage > 0}">
+                                <th>Tax:</th>
+                                <td th:text="${medicine.taxPercentage + '%'}">0%</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="card shadow-sm mb-3" th:if="${medicine.description}">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="bi bi-journal-text"></i> Description</h5>
+                    </div>
+                    <div class="card-body">
+                        <p th:text="${medicine.description}" class="mb-0">Description</p>
+                    </div>
+                </div>
+                
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div class="row g-2">
+                            <div class="col-md-8" th:if="${medicine.stock > 0}">
+                                <form th:action="@{/cart/add}" method="post">
+                                    <input type="hidden" name="medicineId" th:value="${medicine.id}">
+                                    <div class="input-group">
+                                        <input type="number" name="quantity" class="form-control" value="1" min="1" th:max="${medicine.stock}">
+                                        <button type="submit" class="btn btn-primary btn-lg">
+                                            <i class="bi bi-cart-plus"></i> Add to Cart
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="col-md-4" th:if="${medicine.stock > 0}">
+                                <form th:action="@{/wishlist/add}" method="post" class="w-100">
+                                    <input type="hidden" name="medicineId" th:value="${medicine.id}">
+                                    <button type="submit" class="btn btn-outline-danger btn-lg w-100">
+                                        <i class="bi bi-heart"></i> Wishlist
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="col-12" th:if="${medicine.stock == 0}">
+                                <button class="btn btn-secondary btn-lg w-100" disabled>
+                                    <i class="bi bi-x-circle"></i> Out of Stock
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-warning mt-3 mb-0" th:if="${medicine.prescriptionRequired}">
+                            <i class="bi bi-exclamation-triangle"></i> 
+                            <strong>Prescription Required:</strong> You'll need to upload a valid prescription during checkout.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-5">
+            <h4>Related Medicines</h4>
+            <p class="text-muted">Browse more medicines from the <strong th:text="${medicine.category.name}">category</strong> category</p>
+            <a th:href="@{/medicines(category=${medicine.category.id})}" class="btn btn-primary">
+                <i class="bi bi-grid"></i> View Category
+            </a>
+            <a href="/medicines" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to All Medicines
+            </a>
+        </div>
+    </div>
+    
+    <footer th:replace="~{fragments/header :: footer}"></footer>
+    <div th:replace="~{fragments/header :: scripts}"></div>
+</body>
+</html>
