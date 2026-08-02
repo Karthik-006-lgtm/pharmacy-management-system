@@ -51,7 +51,8 @@ public class OrderController {
     @PostMapping("/place")
     public String placeOrder(@RequestParam String paymentMethod,
                              @RequestParam(required = false) MultipartFile prescriptionFile,
-                             RedirectAttributes redirectAttributes) {
+                             RedirectAttributes redirectAttributes,
+                             Model model) {
         try {
             User currentUser = securityUtil.getCurrentUser();
             boolean requiresPrescription = orderService.checkPrescriptionRequired(currentUser);
@@ -62,6 +63,11 @@ public class OrderController {
                 return "redirect:/orders/checkout";
             }
             
+            // Check if payment method is Cash on Delivery
+            boolean isCOD = paymentMethod.equalsIgnoreCase("Cash on Delivery") || 
+                           paymentMethod.equalsIgnoreCase("COD");
+            
+            // Create order
             Order order = orderService.createOrderWithPaymentAndPrescription(
                 currentUser, paymentMethod, requiresPrescription);
             
@@ -70,13 +76,33 @@ public class OrderController {
                 prescriptionService.uploadPrescription(currentUser, order, prescriptionFile, null);
             }
             
-            redirectAttributes.addFlashAttribute("success", 
-                "Order placed successfully! Order Number: " + order.getOrderNumber());
-            return "redirect:/orders/confirmation?orderId=" + order.getId();
+            // For COD, redirect to confirmation directly
+            if (isCOD) {
+                redirectAttributes.addFlashAttribute("success", 
+                    "Order placed successfully! Order Number: " + order.getOrderNumber());
+                return "redirect:/orders/confirmation?orderId=" + order.getId();
+            }
+            
+            // For online payments, redirect to Razorpay payment page
+            model.addAttribute("order", order);
+            model.addAttribute("paymentMethod", paymentMethod);
+            return "redirect:/orders/payment-gateway?orderId=" + order.getId() + 
+                   "&paymentMethod=" + paymentMethod;
+            
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
             return "redirect:/cart";
         }
+    }
+    
+    @GetMapping("/payment-gateway")
+    public String showPaymentGateway(@RequestParam Long orderId,
+                                     @RequestParam String paymentMethod,
+                                     Model model) {
+        Order order = orderService.getOrderById(orderId);
+        model.addAttribute("order", order);
+        model.addAttribute("paymentMethod", paymentMethod);
+        return "orders/razorpay-payment";
     }
     
     @GetMapping("/confirmation")

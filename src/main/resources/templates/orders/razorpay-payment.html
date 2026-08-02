@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head}"></head>
+<body>
+    <nav th:replace="~{fragments/header :: navbar}"></nav>
+    
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white text-center">
+                        <h4 class="mb-0"><i class="bi bi-credit-card"></i> Complete Payment</h4>
+                    </div>
+                    <div class="card-body text-center p-5">
+                        <div class="mb-4">
+                            <i class="bi bi-lock-fill text-success" style="font-size: 4rem;"></i>
+                        </div>
+                        <h5>Order Number: <span class="text-primary" th:text="${order.orderNumber}"></span></h5>
+                        <h3 class="text-success my-3">₹<span th:text="${#numbers.formatDecimal(order.totalAmount, 1, 2)}"></span></h3>
+                        <p class="text-muted">Payment Method: <strong th:text="${paymentMethod}"></strong></p>
+                        
+                        <div class="alert alert-info mt-4">
+                            <i class="bi bi-info-circle"></i> 
+                            You will be redirected to Razorpay secure payment gateway
+                        </div>
+                        
+                        <div id="loadingMessage" class="my-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-3">Initializing secure payment...</p>
+                        </div>
+                        
+                        <button id="payButton" class="btn btn-success btn-lg" style="display: none;">
+                            <i class="bi bi-credit-card"></i> Pay Now
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-3">
+                    <a th:href="@{/orders}" class="btn btn-link">
+                        <i class="bi bi-arrow-left"></i> Back to Orders
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer th:replace="~{fragments/header :: footer}"></footer>
+    <div th:replace="~{fragments/header :: scripts}"></div>
+    
+    <!-- Razorpay Checkout Script -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    
+    <script th:inline="javascript">
+        const orderId = /*[[${order.id}]]*/ 0;
+        const orderNumber = /*[[${order.orderNumber}]]*/ '';
+        const paymentMethod = /*[[${paymentMethod}]]*/ '';
+        const amount = /*[[${order.totalAmount}]]*/ 0;
+        
+        let razorpayOrderId = '';
+        let razorpayOptions = null;
+        
+        // Initialize payment on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePayment();
+        });
+        
+        function initializePayment() {
+            fetch('/api/payment/create-order', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    orderId: orderId,
+                    paymentMethod: paymentMethod
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    razorpayOrderId = data.orderId;
+                    
+                    // Configure Razorpay options
+                    razorpayOptions = {
+                        "key": data.key,
+                        "amount": data.amount,
+                        "currency": data.currency,
+                        "name": data.name,
+                        "description": data.description,
+                        "order_id": data.orderId,
+                        "handler": function (response) {
+                            verifyPayment(response);
+                        },
+                        "prefill": {
+                            "name": "",
+                            "email": "",
+                            "contact": ""
+                        },
+                        "theme": {
+                            "color": "#0d6efd"
+                        },
+                        "modal": {
+                            "ondismiss": function() {
+                                handlePaymentCancellation();
+                            }
+                        }
+                    };
+                    
+                    // Hide loading, show pay button
+                    document.getElementById('loadingMessage').style.display = 'none';
+                    document.getElementById('payButton').style.display = 'inline-block';
+                    
+                    // Auto-open Razorpay after 1 second
+                    setTimeout(function() {
+                        openRazorpay();
+                    }, 1000);
+                    
+                } else {
+                    showError(data.message);
+                }
+            })
+            .catch(error => {
+                showError('Failed to initialize payment: ' + error.message);
+            });
+        }
+        
+        function openRazorpay() {
+            if (razorpayOptions) {
+                const rzp = new Razorpay(razorpayOptions);
+                rzp.open();
+            }
+        }
+        
+        function verifyPayment(response) {
+            // Show loading
+            document.getElementById('payButton').innerHTML = '<span class="spinner-border spinner-border-sm"></span> Verifying...';
+            document.getElementById('payButton').disabled = true;
+            
+            fetch('/api/payment/verify', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    razorpay_order_id: response.razorpay_order_id,
+                    razorpay_payment_id: response.razorpay_payment_id,
+                    razorpay_signature: response.razorpay_signature,
+                    order_id: orderId
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Redirect to confirmation page
+                    window.location.href = '/orders/confirmation?orderId=' + orderId + '&payment=success';
+                } else {
+                    showError('Payment verification failed: ' + data.message);
+                }
+            })
+            .catch(error => {
+                showError('Verification error: ' + error.message);
+            });
+        }
+        
+        function handlePaymentCancellation() {
+            // Record cancellation
+            fetch('/api/payment/failed', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    razorpay_order_id: razorpayOrderId,
+                    error_message: 'Payment cancelled by user'
+                })
+            });
+            
+            // Redirect to orders page
+            window.location.href = '/orders?payment=cancelled';
+        }
+        
+        function showError(message) {
+            document.getElementById('loadingMessage').innerHTML = 
+                '<div class="alert alert-danger"><i class="bi bi-exclamation-triangle"></i> ' + message + '</div>';
+            document.getElementById('payButton').style.display = 'none';
+        }
+        
+        // Attach click handler to pay button
+        document.getElementById('payButton').addEventListener('click', openRazorpay);
+    </script>
+</body>
+</html>
