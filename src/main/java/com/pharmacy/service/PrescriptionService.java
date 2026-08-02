@@ -22,10 +22,13 @@ import java.util.UUID;
 public class PrescriptionService {
     
     private final PrescriptionRepository prescriptionRepository;
+    private final NotificationService notificationService;
     private final String uploadDir = "uploads/prescriptions/";
     
-    public PrescriptionService(PrescriptionRepository prescriptionRepository) {
+    public PrescriptionService(PrescriptionRepository prescriptionRepository,
+                              NotificationService notificationService) {
         this.prescriptionRepository = prescriptionRepository;
+        this.notificationService = notificationService;
         
         try {
             Files.createDirectories(Paths.get(uploadDir));
@@ -71,7 +74,22 @@ public class PrescriptionService {
                 .pharmacist(pharmacist)
                 .build();
         
-        return prescriptionRepository.save(prescription);
+        Prescription savedPrescription = prescriptionRepository.save(prescription);
+        
+        // Notify pharmacist if assigned, otherwise notify all pharmacists (handled elsewhere)
+        if (pharmacist != null) {
+            notificationService.createNotification(
+                    pharmacist,
+                    com.pharmacy.entity.Notification.NotificationType.PRESCRIPTION_UPLOADED,
+                    "New Prescription Uploaded",
+                    String.format("Customer %s uploaded a prescription for order #%s",
+                            user.getFullName(), order.getOrderNumber()),
+                    "Prescription",
+                    savedPrescription.getId()
+            );
+        }
+        
+        return savedPrescription;
     }
     
     public Prescription getByOrderId(Long orderId) {

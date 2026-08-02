@@ -35,7 +35,28 @@ public class PaymentService {
         }
     }
     
+    /**
+     * Simulates payment processing for development/testing purposes.
+     * 
+     * PRODUCTION NOTE: This is a SIMULATION for development and testing.
+     * Replace this method with actual payment gateway integration:
+     * - For Razorpay: Use Razorpay SDK with proper API credentials
+     * - For Stripe: Use Stripe SDK with proper API credentials
+     * - For PayU: Use PayU SDK with proper merchant credentials
+     * 
+     * Integration points required:
+     * 1. Payment gateway SDK dependency in pom.xml
+     * 2. API keys in application.properties (use environment variables in production)
+     * 3. Webhook endpoints for payment confirmation callbacks
+     * 4. Error handling for payment failures, timeouts, and network issues
+     * 5. Transaction verification and reconciliation
+     * 
+     * @param paymentMethod The payment method selected by the user
+     * @return true for successful payment (currently always returns true in simulation)
+     */
     private boolean simulatePaymentProcessing(String paymentMethod) {
+        // SIMULATION: Always returns success
+        // In production, this should make actual API calls to payment gateway
         return true;
     }
     

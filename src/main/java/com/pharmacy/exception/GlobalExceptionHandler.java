@@ -38,6 +38,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public String handleGenericException(Exception ex, Model model) {
+        ex.printStackTrace(); // Log the full stack trace
+        System.err.println("ERROR: " + ex.getMessage());
         model.addAttribute("error", "An unexpected error occurred. Please try again.");
         return "error/500";
     }

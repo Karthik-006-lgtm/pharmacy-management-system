@@ -57,11 +57,15 @@ public class Notification {
         REQUEST_REJECTED,
         PAYMENT_SUCCESS,
         PAYMENT_FAILED,
+        ORDER_PLACED,
+        ORDER_ASSIGNED,
         DELIVERY_STARTED,
         DELIVERY_DELAY,
         NEAR_DELIVERY,
         ORDER_DELIVERED,
+        INVOICE_GENERATED,
         FEEDBACK_PENDING,
-        ORDER_STATUS_UPDATE
+        ORDER_STATUS_UPDATE,
+        PRESCRIPTION_UPLOADED
     }
 }

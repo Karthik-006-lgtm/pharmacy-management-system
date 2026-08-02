@@ -29,7 +29,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query("SELECT o FROM Order o ORDER BY o.orderDate DESC")
     List<Order> findRecentOrders(Pageable pageable);
     
-    @Query("SELECT COUNT(o) FROM Order o WHERE FUNCTION('DATE', o.orderDate) = CURRENT_DATE")
+    @Query("SELECT COUNT(o) FROM Order o WHERE CAST(o.orderDate AS date) = CURRENT_DATE")
     long countTodayOrders();
     
     long countByStatus(Order.OrderStatus status);

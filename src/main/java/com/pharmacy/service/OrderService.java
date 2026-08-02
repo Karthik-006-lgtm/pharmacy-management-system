@@ -21,13 +21,16 @@ public class OrderService {
     private final CartService cartService;
     private final MedicineService medicineService;
     private final InvoiceService invoiceService;
+    private final NotificationService notificationService;
     
     public OrderService(OrderRepository orderRepository, CartService cartService, 
-                        MedicineService medicineService, InvoiceService invoiceService) {
+                        MedicineService medicineService, InvoiceService invoiceService,
+                        NotificationService notificationService) {
         this.orderRepository = orderRepository;
         this.cartService = cartService;
         this.medicineService = medicineService;
         this.invoiceService = invoiceService;
+        this.notificationService = notificationService;
     }
     
     @Transactional
@@ -117,6 +120,60 @@ public class OrderService {
         
         if (status == Order.OrderStatus.DELIVERED) {
             order.setDeliveryDate(LocalDateTime.now());
+            
+            // Generate invoice for COD orders when delivered
+            if (("COD".equalsIgnoreCase(order.getPaymentMethod()) || 
+                 "Cash on Delivery".equalsIgnoreCase(order.getPaymentMethod()))) {
+                // Check if invoice already exists
+                Invoice existingInvoice = invoiceService.findByOrderId(order.getId());
+                if (existingInvoice == null) {
+                    invoiceService.generateInvoice(order, order.getPaymentMethod());
+                    
+                    // Notify customer about invoice generation for COD
+                    notificationService.createNotification(
+                            order.getUser(),
+                            Notification.NotificationType.ORDER_STATUS_UPDATE,
+                            "Invoice Generated",
+                            String.format("Invoice has been generated for your delivered order #%s. You can download it from your order history.",
+                                    order.getOrderNumber()),
+                            "Order",
+                            order.getId()
+                    );
+                }
+            }
+            
+            // Notify customer about delivery
+            notificationService.createNotification(
+                    order.getUser(),
+                    Notification.NotificationType.ORDER_DELIVERED,
+                    "Order Delivered",
+                    String.format("Your order #%s has been delivered successfully. Please provide feedback!",
+                            order.getOrderNumber()),
+                    "Order",
+                    order.getId()
+            );
+        } else if (status == Order.OrderStatus.SHIPPED) {
+            // Notify customer when shipped
+            notificationService.createNotification(
+                    order.getUser(),
+                    Notification.NotificationType.ORDER_STATUS_UPDATE,
+                    "Order Shipped",
+                    String.format("Your order #%s has been shipped and is on the way.",
+                            order.getOrderNumber()),
+                    "Order",
+                    order.getId()
+            );
+        } else if (status == Order.OrderStatus.PACKED) {
+            // Notify customer when packed
+            notificationService.createNotification(
+                    order.getUser(),
+                    Notification.NotificationType.ORDER_STATUS_UPDATE,
+                    "Order Packed",
+                    String.format("Your order #%s has been packed and will be dispatched soon.",
+                            order.getOrderNumber()),
+                    "Order",
+                    order.getId()
+            );
         }
         
         return orderRepository.save(order);
@@ -166,6 +223,27 @@ public class OrderService {
         order.setPharmacist(pharmacist);
         order.setStatus(Order.OrderStatus.APPROVED);
         orderRepository.save(order);
+        
+        // Notify customer about order acceptance
+        notificationService.createNotification(
+                order.getUser(),
+                Notification.NotificationType.ORDER_STATUS_UPDATE,
+                "Order Approved",
+                String.format("Your order #%s has been approved by pharmacist %s and is being prepared.",
+                        order.getOrderNumber(), pharmacist.getFullName()),
+                "Order",
+                order.getId()
+        );
+        
+        // Notify pharmacist
+        notificationService.createNotification(
+                pharmacist,
+                Notification.NotificationType.ORDER_STATUS_UPDATE,
+                "Order Assigned",
+                String.format("Order #%s has been assigned to you.", order.getOrderNumber()),
+                "Order",
+                order.getId()
+        );
     }
     
     @Transactional
@@ -174,6 +252,17 @@ public class OrderService {
         order.setStatus(Order.OrderStatus.REJECTED);
         order.setRemarks(remarks);
         orderRepository.save(order);
+        
+        // Notify customer about order rejection
+        notificationService.createNotification(
+                order.getUser(),
+                Notification.NotificationType.ORDER_STATUS_UPDATE,
+                "Order Rejected",
+                String.format("Your order #%s has been rejected. Reason: %s",
+                        order.getOrderNumber(), remarks != null ? remarks : "Not specified"),
+                "Order",
+                order.getId()
+        );
     }
     
     @Transactional
@@ -226,6 +315,26 @@ public class OrderService {
             savedOrder.setPaymentCompletedAt(LocalDateTime.now());
             orderRepository.save(savedOrder);
             invoiceService.generateInvoice(savedOrder, paymentMethod);
+            
+            // Notify customer about successful payment and invoice
+            notificationService.createNotification(
+                    user,
+                    Notification.NotificationType.PAYMENT_SUCCESS,
+                    "Payment Successful",
+                    String.format("Payment for order #%s completed successfully. Invoice generated.", orderNumber),
+                    "Order",
+                    savedOrder.getId()
+            );
+        } else {
+            // Notify customer about COD order placement
+            notificationService.createNotification(
+                    user,
+                    Notification.NotificationType.ORDER_STATUS_UPDATE,
+                    "Order Placed",
+                    String.format("Your order #%s has been placed successfully. Pay on delivery.", orderNumber),
+                    "Order",
+                    savedOrder.getId()
+            );
         }
         
         cartService.clearCart(user);
@@ -244,7 +353,11 @@ public class OrderService {
         if ("COD".equalsIgnoreCase(order.getPaymentMethod()) || 
             "Cash on Delivery".equalsIgnoreCase(order.getPaymentMethod())) {
             if (order.getStatus() == Order.OrderStatus.DELIVERED) {
-                invoiceService.generateInvoice(savedOrder, order.getPaymentMethod());
+                // Check if invoice already exists
+                Invoice existingInvoice = invoiceService.findByOrderId(order.getId());
+                if (existingInvoice == null) {
+                    invoiceService.generateInvoice(savedOrder, order.getPaymentMethod());
+                }
             }
         }
     }
