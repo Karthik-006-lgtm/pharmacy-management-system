@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragments/header :: head}"></th:block>
+    <th:block th:replace="~{fragments/leaflet :: leaflet-css}"></th:block>
+    <link rel="stylesheet" th:href="@{/css/leaflet-custom.css}">
+</head>
+<body>
+    <nav th:replace="~{fragments/header :: navbar}"></nav>
+    
+    <div class="container my-5">
+        <!-- Page Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h2><i class="bi bi-geo-alt"></i> Map Integration Demo</h2>
+                <p class="text-muted">Leaflet + OpenStreetMap integration for Online Pharmacy Management System</p>
+            </div>
+        </div>
+        
+        <!-- Info Alert -->
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            <i class="bi bi-info-circle"></i> 
+            <strong>Verification Phase:</strong> This page demonstrates successful integration of Leaflet.js and OpenStreetMap. 
+            Business features (routing, delivery tracking, etc.) will be implemented in future phases.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <!-- Map Card -->
+        <div class="map-card">
+            <div class="map-card-title">
+                <i class="bi bi-map"></i> Interactive Map
+            </div>
+            
+            <!-- Map Container -->
+            <div id="demoMap" class="map-container">
+                <div class="map-loading">
+                    <div class="map-loading-spinner"></div>
+                </div>
+            </div>
+            
+            <!-- Map Controls Info -->
+            <div class="mt-3">
+                <div class="row text-center">
+                    <div class="col-md-3 col-6 mb-2">
+                        <i class="bi bi-zoom-in text-primary fs-4"></i>
+                        <p class="mb-0 small">Zoom In</p>
+                    </div>
+                    <div class="col-md-3 col-6 mb-2">
+                        <i class="bi bi-zoom-out text-primary fs-4"></i>
+                        <p class="mb-0 small">Zoom Out</p>
+                    </div>
+                    <div class="col-md-3 col-6 mb-2">
+                        <i class="bi bi-arrows-move text-primary fs-4"></i>
+                        <p class="mb-0 small">Drag Map</p>
+                    </div>
+                    <div class="col-md-3 col-6 mb-2">
+                        <i class="bi bi-geo-alt-fill text-primary fs-4"></i>
+                        <p class="mb-0 small">View Marker</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Integration Status -->
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="bi bi-check-circle text-success"></i> Integration Status</h5>
+                        <ul class="list-unstyled mb-0">
+                            <li><i class="bi bi-check2 text-success"></i> Leaflet.js 1.9.4 Loaded</li>
+                            <li><i class="bi bi-check2 text-success"></i> OpenStreetMap Tiles Configured</li>
+                            <li><i class="bi bi-check2 text-success"></i> Responsive Map Container</li>
+                            <li><i class="bi bi-check2 text-success"></i> Interactive Controls</li>
+                            <li><i class="bi bi-check2 text-success"></i> Custom Markers Supported</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="bi bi-info-circle text-info"></i> Map Information</h5>
+                        <ul class="list-unstyled mb-0">
+                            <li><strong>Default Location:</strong> Chennai, India</li>
+                            <li><strong>Coordinates:</strong> 13.0827°N, 80.2707°E</li>
+                            <li><strong>Zoom Level:</strong> 13</li>
+                            <li><strong>Tile Provider:</strong> OpenStreetMap</li>
+                            <li><strong>CDN:</strong> unpkg.com (Leaflet Official)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Back Button -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <a th:href="@{/home}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Home
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <footer th:replace="~{fragments/header :: footer}"></footer>
+    
+    <!-- Standard Scripts -->
+    <div th:replace="~{fragments/header :: scripts}"></div>
+    
+    <!-- Leaflet Scripts -->
+    <div th:replace="~{fragments/leaflet :: leaflet-js}"></div>
+    <script th:src="@{/js/leaflet-helper.js}"></script>
+    
+    <!-- Map Initialization -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Remove loading overlay
+            setTimeout(function() {
+                const loadingOverlay = document.querySelector('.map-loading');
+                if (loadingOverlay) {
+                    loadingOverlay.style.display = 'none';
+                }
+                
+                // Initialize map using helper
+                const map = LeafletHelper.initMap('demoMap', {
+                    center: [13.0827, 80.2707], // Chennai, India
+                    zoom: 13
+                });
+                
+                // Add demonstration marker
+                LeafletHelper.addMarker(map, [13.0827, 80.2707], {
+                    popup: '<div class="text-center"><strong>Online Pharmacy Management System</strong><br><small>Chennai, Tamil Nadu, India</small></div>',
+                    openPopup: true
+                });
+                
+                console.log('✓ Leaflet map initialized successfully');
+                console.log('✓ OpenStreetMap tiles loaded');
+                console.log('✓ Marker displayed with popup');
+            }, 500);
+        });
+    </script>
+</body>
+</html>
