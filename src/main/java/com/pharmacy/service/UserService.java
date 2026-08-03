@@ -21,11 +21,14 @@ public class UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
     
-    public UserService(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, RoleRepository roleRepository, 
+                      PasswordEncoder passwordEncoder, EmailService emailService) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
+        this.emailService = emailService;
     }
     
     @Transactional
@@ -56,7 +59,12 @@ public class UserService {
                 .enabled(true)
                 .build();
         
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        
+        // Send registration email
+        sendRegistrationEmail(savedUser, registrationDto.getAccountType());
+        
+        return savedUser;
     }
     
     public User findByEmail(String email) {
@@ -93,5 +101,26 @@ public class UserService {
                 .filter(user -> user.getRoles().stream()
                         .anyMatch(role -> role.getName().equals("ROLE_CUSTOMER")))
                 .count();
+    }
+    
+    private void sendRegistrationEmail(User user, String accountType) {
+        try {
+            String title = "Welcome to Online Pharmacy Management System!";
+            String content = "Dear " + user.getFullName() + ",<br><br>" +
+                           "Your account has been successfully created as a " + accountType + ".<br><br>" +
+                           "You can now login and start using our services.<br><br>" +
+                           "Your registered email is: <strong>" + user.getEmail() + "</strong>";
+            
+            java.util.Map<String, String> details = new java.util.HashMap<>();
+            details.put("Account Type", accountType);
+            details.put("Email", user.getEmail());
+            details.put("Registration Date", java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm")));
+            
+            String htmlContent = emailService.buildEmailTemplate(title, content, details);
+            emailService.sendHtmlEmail(user.getEmail(), "Welcome to Pharmacy Management System", 
+                                     htmlContent, "REGISTRATION", user.getId(), null);
+        } catch (Exception e) {
+            System.err.println("Failed to send registration email: " + e.getMessage());
+        }
     }
 }
